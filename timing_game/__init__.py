@@ -11,7 +11,6 @@ class C(BaseConstants):
     NAME_IN_URL = 'timing_game'
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1
-    MAX_CONTRIBUTION = cu(100)
     XMAX = 15
     XMIN = 5
     YMAX = 120
@@ -150,16 +149,15 @@ class WaitToStart(WaitPage):
 
 # PAGES
 class MyPage(Page):
-    timeout_seconds = 5 * 60
+    timeout_seconds = 3 * 60
 
     @staticmethod
     def js_vars(player: Player): #Passing data from Python to JavaScript
-        return dict(my_id=player.id_in_group, max_contribution=C.MAX_CONTRIBUTION, xmax=C.XMAX, xmin=C.XMIN, ymax=C.YMAX, ymin=C.YMIN)
+        return dict(my_id=player.id_in_group, xmax=C.XMAX, xmin=C.XMIN, ymax=C.YMAX, ymin=C.YMIN)
 
     @staticmethod
     def vars_for_template(player: Player):
         return dict(
-            max_contribution=int(C.MAX_CONTRIBUTION),
             xmax=C.XMAX, 
             xmin=C.XMIN,
             )
@@ -265,7 +263,7 @@ page_sequence = [WaitToStart, MyPage, ResultsWaitPage, Results]
 def custom_export(players):
     # Export an ExtraModel called "Trial"
 
-    yield ['session', 'participant', 'round_number', 'id_in_group', 'contribution', 'seconds']
+    yield ['session', 'participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -273,4 +271,4 @@ def custom_export(players):
         player = adj.player
         participant = player.participant
         session = player.session
-        yield [session.code, participant.code, player.round_number, player.id_in_group, adj.contribution, adj.seconds]
+        yield [session.code, participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff]

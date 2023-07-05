@@ -1,8 +1,8 @@
 {{ block content }}
 
-<p>This is a continuous-time public goods game. You are <b>Player {{ player.id_in_group }}</b>.</p>
+<p>This is a Timing Game. You are <b>Player {{ player.id_in_group }}</b>.</p>
 
-<p>Use the slider to adjust your contribution in real time:</p>
+<p>Use the slider to adjust your strategy in real time:</p>
 
 <input type="range" min="{{ xmin }}" max="{{ xmax }}" step="0.01" class="form-range"
        onchange="updateContribution(this)" id="slider">
