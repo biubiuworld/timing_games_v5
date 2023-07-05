@@ -1,0 +1,67 @@
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script>
+
+<!-- height is needed to avoid scroll to top: https://www.highcharts.com/forum/viewtopic.php?t=12731 -->
+<div id="landscape" style="height: 35em;">
+
+</div>
+
+<script>
+    function redrawLandscapeChart(highcharts_landscape_series) {
+        Highcharts.chart('landscape', {
+
+            title: {
+                text: 'Landscape'
+            },
+            yAxis: {
+                title: {
+                    text: 'Payoff'
+                },
+                min: js_vars.ymin,
+                max: js_vars.ymax
+            },
+
+            xAxis: {
+                title: {
+                    text: 'Strategy'
+                },
+                min: js_vars.xmin,
+                max: js_vars.xmax
+            },
+
+            series: [{
+                type: 'line',
+                name: 'Landscape',
+                data: highcharts_landscape_series[1],
+                marker: {
+                    enabled: false
+                },
+                states: {
+                    hover: {
+                        lineWidth: 0
+                    }
+                },
+                enableMouseTracking: true
+            }, {
+                type: 'scatter',
+                name: 'Positions',
+                data: highcharts_landscape_series[0],
+                marker: {
+                    radius: 8
+                }
+            }, {
+                type: 'scatter',
+                name: 'Your Position',
+                data: [highcharts_landscape_series[0][js_vars.my_id-1]],
+                marker: {
+                    radius: 8
+                }
+            }],
+
+            credits: {
+                enabled: false
+            }
+
+        });
+    }
+</script>

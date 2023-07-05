@@ -1,0 +1,47 @@
+{{ block content }}
+
+<p>This is a continuous-time public goods game. You are <b>Player {{ player.id_in_group }}</b>.</p>
+
+<p>Use the slider to adjust your contribution in real time:</p>
+
+<input type="range" min="{{ xmin }}" max="{{ xmax }}" step="0.01" class="form-range"
+       onchange="updateContribution(this)" id="slider">
+
+<br><br>
+
+<p>Seconds since last change: <span id="secondsSinceChange">0</span></p>
+
+{{ include_sibling 'landscape.html' }}
+{{ include_sibling 'chart.html' }}
+{{ include_sibling 'payoff.html' }}
+
+
+<script>
+    let secondsSinceChange = 0;
+
+    function updateContribution(slider) {
+        liveSend({'strategy': slider.value});
+    }
+
+    function liveRecv(data) {
+        console.log(data)
+        if ('highcharts_landscape_series' in data) {
+            redrawLandscapeChart(data.highcharts_landscape_series);
+            redrawStrategiesChart(data.highcharts_series);
+            console.log(data.highcharts_payoff_series);
+            redrawPayoffChart(Array(data.highcharts_payoff_series[{{ player.id_in_group }} - 1]));
+            secondsSinceChange = 0;
+        }
+    }
+
+    setInterval(function() {
+        secondsSinceChange++;
+        document.getElementById('secondsSinceChange').innerHTML = secondsSinceChange;
+    }, 1000);
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        liveSend({});
+    });
+</script>
+
+{{ endblock }}

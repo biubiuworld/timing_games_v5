@@ -1,0 +1,54 @@
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script>
+
+<!-- height is needed to avoid scroll to top: https://www.highcharts.com/forum/viewtopic.php?t=12731 -->
+<div id="highchart" style="height: 25em;float: left;width: 50%">
+
+</div>
+
+<script>
+    function redrawStrategiesChart(series) {
+        Highcharts.chart('highchart', {
+
+            title: {
+                text: 'Strategy History'
+            },
+            yAxis: {
+                title: {
+                    text: 'Strategy'
+                },
+                min: js_vars.xmin,
+                max: js_vars.xmax
+            },
+
+            xAxis: {
+                title: {
+                    text: 'Time (seconds)'
+                },
+                min: 0
+            },
+
+            plotOptions: {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                    step: 'left',
+                    animation: false
+                },
+                line: {
+                    marker: {
+                        enabled: false
+                    }
+                }
+            },
+
+            series: series,
+
+            credits: {
+                enabled: false
+            }
+
+        });
+    }
+</script>
