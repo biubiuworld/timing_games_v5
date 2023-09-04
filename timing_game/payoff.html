@@ -2,13 +2,16 @@
 <script src="https://code.highcharts.com/modules/series-label.js"></script>
 
 <!-- height is needed to avoid scroll to top: https://www.highcharts.com/forum/viewtopic.php?t=12731 -->
-<div id="payoff" style="height: 25em;float: right;width: 50%">
+<div id="payoff" style="float:right;width: 40%">
 
 </div>
 
 <script>
     function redrawPayoffChart(series) {
         Highcharts.chart('payoff', {
+            chart: {
+                 height: 350,
+                        },
 
             title: {
                 text: 'Payoff History'

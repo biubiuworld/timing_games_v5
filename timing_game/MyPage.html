@@ -1,47 +1,215 @@
+{{ block styles}}
+<style>
+   /* .otree-timer {
+        display: none;
+    } */
+
+  .slidecontainer {
+    width: 60%;
+    height: 100%;
+  }
+
+  .slidecontainer input {
+    width: 600px;
+    margin-left: 70px;
+  }
+
+  /* .landscape {
+    height: 793px;
+  } */
+  #landscape .highcharts-container {
+    /* height: 600px !important; */
+  }
+
+  #highchart .highcharts-container {
+    /* height: 260px !important; */
+  }
+
+  #payoff .highcharts-container {
+    /* height: 260px !important; */
+  }
+
+  .slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+  }
+
+  .slider:hover {
+    opacity: 1;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #04AA6D;
+    cursor: pointer;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #04AA6D;
+    cursor: pointer;
+  }
+
+  /* .box-content {
+    display:flex;
+    height:800px;
+    border: 1px solid red;
+  } */
+  * {
+        font-family: '微软雅黑', sans-serif;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      .container-box {
+        width: 150px;
+        height: 50px;
+        /* border: 1px solid #000; */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-left: 300px;
+      }
+      .container-box button {
+        padding: 10px;
+        font-size: 20px;
+        border: none;
+      }
+      progress{
+        vertical-align: -10px;
+      }
+</style>
+{{ endblock }}
+
+
+
 {{ block content }}
 
 <p>This is a Timing Game. You are <b>Player {{ player.id_in_group }}</b>.</p>
 
 <p>Use the slider to adjust your strategy in real time:</p>
 
-<input type="range" min="{{ xmin }}" max="{{ xmax }}" step="0.01" class="form-range"
-       onchange="updateContribution(this)" id="slider">
 
-<br><br>
-
-<p>Seconds since last change: <span id="secondsSinceChange">0</span></p>
-
+<p>Remaining seconds before next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px"></progress></span></p>
 {{ include_sibling 'landscape.html' }}
-{{ include_sibling 'chart.html' }}
-{{ include_sibling 'payoff.html' }}
+<div>{{ include_sibling 'chart.html' }}</div>
+<div>{{ include_sibling 'payoff.html' }}</div>
 
+
+<div class="slidecontainer"><input type="range" min="{{ xmin }}" max="{{ xmax }}" step="0.01" class="slider"
+  oninput="updateSlider(this)" id="slider"></div>
+
+    <div class="container-box">
+      <button type="button" id="btn1">-</button>
+      <span id="statistics">10</span>
+      <button type="button" id="btn2">+</button>
+    </div>
 
 <script>
-    let secondsSinceChange = 0;
+  let progress=document.getElementsByTagName('progress')[0];
+  let subperiod = js_vars.subperiod;
+  let subperiodThousand = subperiod*1000;
+  let sliderValue = 0;
+  
 
-    function updateContribution(slider) {
-        liveSend({'strategy': slider.value});
-    }
-
-    function liveRecv(data) {
-        console.log(data)
-        if ('highcharts_landscape_series' in data) {
-            redrawLandscapeChart(data.highcharts_landscape_series);
-            redrawStrategiesChart(data.highcharts_series);
-            console.log(data.highcharts_payoff_series);
-            redrawPayoffChart(Array(data.highcharts_payoff_series[{{ player.id_in_group }} - 1]));
-            secondsSinceChange = 0;
+  var numbers = document.getElementById('statistics')
+      var btn1 = document.getElementById('btn1')
+      var btn2 = document.getElementById('btn2')
+      // console.log(btn1)
+      var num = 10.00
+      
+      btn1.addEventListener('click', function () {
+        if (numbers.innerHTML != 0) {
+          num = parseFloat(num - 0.01).toFixed(2) - 0
+          numbers.innerHTML = num
+          numbers.value = num
+          slider.value = num
+          liveSend({ 'slider': numbers.value });
         }
+      })
+      btn2.addEventListener('click', function () {
+        // num += 0.01
+        // numbers.innerHTML = num
+        num = parseFloat(num + 0.01).toFixed(2) - 0
+   
+        numbers.innerHTML = num
+        numbers.value = num
+        slider.value = num
+        liveSend({ 'slider': numbers.value });
+      })
+
+  timing()
+  function timing() {
+    setInterval(() => {
+      liveSend({ 'strategy': slider.value });
+    }, subperiodThousand);
+  }
+
+ 
+  var highchartsLandscapeSeries=[];
+
+ 
+
+  function liveRecv(data) {
+    //console.log(data)
+    if ('highcharts_series' in data) {
+      redrawLandscapeChart(data.highcharts_landscape_series);
+      redrawStrategiesChart(data.highcharts_series);
+      //console.log(data.highcharts_landscape_series);
+      redrawPayoffChart(Array(data.highcharts_payoff_series[{{ player.id_in_group }} - 1]));
+      // secondsSinceChange = 3;
+      progress.value=js_vars.subperiod;
+  } else if ('single_coordinate' in data) {
+      redrawLandscapeChartwithCurrentSliderValue(data.single_coordinate, data.highcharts_landscape_series);
+
+  }
     }
 
-    setInterval(function() {
-        secondsSinceChange++;
-        document.getElementById('secondsSinceChange').innerHTML = secondsSinceChange;
-    }, 1000);
+//   setTimeout(function(){
+//     console.log(highchartsLandscapeSeries);
+// }, 100);
 
-    document.addEventListener('DOMContentLoaded', (event) => {
-        liveSend({});
-    });
+ 
+
+
+  function getCurrentSliderValueCoordinate(coordinate) {
+    return coordinate[0] == sliderValue;
+  }
+
+  function updateSlider(slider) {
+    // console.log(slider.value);
+    numbers.innerHTML = slider.value
+    num=slider.value
+    sliderValue = slider.value;
+    numbers.value = slider.value;
+    liveSend({ 'slider': numbers.value });
+    // currentValue = highcharts_landscape_series.find(getCurrentSliderValueCoordinate);
+    // redrawLandscapeChartwithCurrentSliderValue(currentValue,highcharts_landscape_series);
+  }
+
+  setInterval(function () {
+    if(progress.value!=0){
+      progress.value--;
+    }
+    // document.getElementById('secondsSinceChange').innerHTML = secondsSinceChange;
+  }, 1000);
+
+//sends an empty message to the server when the page loads
+  document.addEventListener('DOMContentLoaded', (event) => {
+    liveSend({});
+  });
 </script>
+
+
 
 {{ endblock }}

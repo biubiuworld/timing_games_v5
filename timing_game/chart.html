@@ -2,13 +2,18 @@
 <script src="https://code.highcharts.com/modules/series-label.js"></script>
 
 <!-- height is needed to avoid scroll to top: https://www.highcharts.com/forum/viewtopic.php?t=12731 -->
-<div id="highchart" style="height: 25em;float: left;width: 50%">
+<div id="highchart" style="float:left;width: 40%">
 
 </div>
 
 <script>
-    function redrawStrategiesChart(series) {
+    function redrawStrategiesChart(highcharts_series) {
+        // const other_strategies = highcharts_series.slice();
+        // other_strategies.splice(js_vars.my_id-1,1);
         Highcharts.chart('highchart', {
+            chart: {
+                 height: 350,
+                        },
 
             title: {
                 text: 'Strategy History'
@@ -42,8 +47,7 @@
                     }
                 }
             },
-
-            series: series,
+            series: highcharts_series,
 
             credits: {
                 enabled: false
