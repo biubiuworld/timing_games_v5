@@ -14,7 +14,7 @@ class C(BaseConstants):
     NUM_ROUNDS = 1
     XMAX = 15
     XMIN = 5
-    YMAX = 120
+    YMAX = 150
     YMIN = 0
     LAMBDA = 10
     RHO = 2
