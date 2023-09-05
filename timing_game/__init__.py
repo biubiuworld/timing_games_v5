@@ -17,8 +17,8 @@ class C(BaseConstants):
     YMAX = 120
     YMIN = 0
     LAMBDA = 10
-    RHO = 5
-    GAMMA = 2
+    RHO = 2
+    GAMMA = 5
     DECIMALS = 2
     SUBPERIOD = 6
 
