@@ -9,7 +9,7 @@
 <script>
     function redrawPayoffChart(highcharts_payoff_series, avg_payoff_history) {
         let dict_my = {type: 'line',
-                    name: 'My Payoff History',
+                    name: 'My Payoff',
                     data: highcharts_payoff_series[js_vars.my_id-1],
                     opacity: 0.8,
                     color: '#ff0000',
@@ -23,7 +23,7 @@
                     },
                     }; 
         let dict_avg_payoff = {type: 'line',
-                    name: 'Average Payoff History',
+                    name: 'Average Group Payoff',
                     data: avg_payoff_history,
                     color: 'blue',
                     opacity: 0.6,

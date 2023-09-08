@@ -194,7 +194,7 @@ class MyPage(Page):
     def vars_for_template(player: Player):
         global avg_payoff_history
         avg_payoff_history = []
-        print(avg_payoff_history)
+        # print(avg_payoff_history)
         return dict(
             xmax=float(C.XMAX[player.round_number-1]), 
             xmin=float(C.XMIN[player.round_number-1]),
