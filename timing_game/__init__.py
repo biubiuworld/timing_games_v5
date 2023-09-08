@@ -219,7 +219,7 @@ class MyPage(Page):
         if data == {}: #at beginning, when receive none msg, reset the timestamp
             # print('yes')
             group.messages_roundzero += 1
-            # group.start_timestamp =int(time.time())    
+            group.start_timestamp =int(time.time())    
         now_seconds = int(time.time() - group.start_timestamp)
         #record the player who made the change
         # print(now_seconds)
