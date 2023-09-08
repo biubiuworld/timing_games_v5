@@ -1,8 +1,8 @@
 {{ block styles}}
 <style>
-   /* .otree-timer {
+   .otree-timer {
         display: none;
-    } */
+    }
 
   .slidecontainer {
     width: 55%;
@@ -97,12 +97,9 @@
 
 {{ block content }}
 
-<p>This is a Timing Game. You are <b>Player {{ player.id_in_group }}</b>.</p>
-
-<p>Use the slider to adjust your strategy in real time:</p>
-
-
-<p>Remaining seconds before next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px"></progress></span></p>
+<p>Use the slider to adjust your strategy in real time. The game remains <span id="time-left" style="color:blue"></span> seconds.
+  <br> 
+ Remaining seconds before next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px"></progress></span></p>
 {{ include_sibling 'landscape.html' }}
 <div>{{ include_sibling 'chart.html' }}</div>
 <div>{{ include_sibling 'payoff.html' }}</div>
@@ -117,7 +114,11 @@
       <button type="button" id="btn2">+</button>
     </div>
 
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/series-label.js"></script>
+
 <script>
+
   let progress=document.getElementsByTagName('progress')[0];
   let subperiod = js_vars.subperiod;
   let subperiodThousand = subperiod*1000;
@@ -168,7 +169,7 @@
       redrawLandscapeChart(data.highcharts_landscape_series);
       redrawStrategiesChart(data.highcharts_series);
       //console.log(data.highcharts_landscape_series);
-      redrawPayoffChart(Array(data.highcharts_payoff_series[{{ player.id_in_group }} - 1]));
+      redrawPayoffChart(data.highcharts_payoff_series, data.avg_payoff_history);
       // secondsSinceChange = 3;
       progress.value=js_vars.subperiod;
   } else if ('single_coordinate' in data) {
@@ -210,6 +211,14 @@
   document.addEventListener('DOMContentLoaded', (event) => {
     liveSend({});
   });
+
+  let customTimerEle = document.getElementById('time-left');
+  document.addEventListener("DOMContentLoaded", function (event) {
+      $('.otree-timer__time-left').on('update.countdown', function (event) {
+                customTimerEle.innerText = event.offset.totalSeconds;
+            });
+        });
+
 </script>
 
 

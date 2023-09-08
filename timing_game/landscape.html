@@ -1,5 +1,5 @@
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/series-label.js"></script>
+<!-- <script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script> -->
 
 <!-- height is needed to avoid scroll to top: https://www.highcharts.com/forum/viewtopic.php?t=12731 -->
 <div id="landscape" style="float:left;width: 60%">
@@ -10,6 +10,51 @@
     function redrawLandscapeChart(highcharts_landscape_series) {
         const other_positions = highcharts_landscape_series[0].slice();
         other_positions.splice(js_vars.my_id-1,1);
+        let series = [];
+        for (let i=0; i<other_positions.length; i++){
+            dict = {type: 'scatter',
+                    name: 'Other Strategies',
+                    data: [other_positions[i]],
+                    opacity: 0.5,
+                    showInLegend: false,
+                    marker: {
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF',
+                        lineColor: null,
+                        symbol: 'circle',
+                        radius: 6
+                },}
+            series.push(dict);
+        }
+        let dict_my = {type: 'scatter',
+                    name: 'My Strategy',
+                    data: [highcharts_landscape_series[0][js_vars.my_id-1]],
+                    opacity: 0.9,
+                    color: '#ff0000',
+                    marker: {
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF',
+                        lineColor: null,
+                        symbol: 'diamond',
+                        radius: 6
+                },};
+        let dict_lanscape = {
+                type: 'line',
+                name: 'Landscape',
+                data: highcharts_landscape_series[1],
+                color: 'blue',
+                marker: {
+                    enabled: false
+                },
+                states: {
+                    hover: {
+                        lineWidth: 0
+                    }
+                },
+                enableMouseTracking: true
+            };
+        series.push(dict_my, dict_lanscape);        
+
         Highcharts.chart('landscape', {
             chart: {
                  height: 600,
@@ -42,47 +87,48 @@
 
             },
 
-            series: [{
-                type: 'line',
-                name: 'Landscape',
-                data: highcharts_landscape_series[1],
-                marker: {
-                    enabled: false
-                },
-                states: {
-                    hover: {
-                        lineWidth: 0
-                    }
-                },
-                enableMouseTracking: true
-            }, {
-                type: 'scatter',
-                name: 'Other Positions',
-                data: other_positions,
-                color: '#6B8E23',
-                opacity: 0.8,
-                marker: {
-                    lineWidth: 2,
-                    fillColor: '#FFFFFF',
-                    lineColor: null,
-                    symbol: 'circle',
-                    radius: 6
-                },
+            // series: [{
+            //     type: 'line',
+            //     name: 'Landscape',
+            //     data: highcharts_landscape_series[1],
+            //     marker: {
+            //         enabled: false
+            //     },
+            //     states: {
+            //         hover: {
+            //             lineWidth: 0
+            //         }
+            //     },
+            //     enableMouseTracking: true
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Other Positions',
+            //     data: other_positions,
+            //     color: '#6B8E23',
+            //     opacity: 0.8,
+            //     marker: {
+            //         lineWidth: 2,
+            //         fillColor: '#FFFFFF',
+            //         lineColor: null,
+            //         symbol: 'circle',
+            //         radius: 6
+            //     },
 
-            }, {
-                type: 'scatter',
-                name: 'Your Position',
-                data: [highcharts_landscape_series[0][js_vars.my_id-1]],
-                color: '#ff0000',
-                opacity: 0.8,
-                marker: {
-                    lineWidth: 2,
-                    fillColor: '#FFFFFF',
-                    lineColor: null,
-                    symbol: 'circle',
-                    radius: 6
-                }
-            }],
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Your Position',
+            //     data: [highcharts_landscape_series[0][js_vars.my_id-1]],
+            //     color: '#ff0000',
+            //     opacity: 0.8,
+            //     marker: {
+            //         lineWidth: 2,
+            //         fillColor: '#FFFFFF',
+            //         lineColor: null,
+            //         symbol: 'circle',
+            //         radius: 6
+            //     }
+            // }],
+            series: series,
 
             credits: {
                 enabled: false
@@ -92,8 +138,64 @@
     }
 
     function redrawLandscapeChartwithCurrentSliderValue(currentValue,highcharts_landscape_series) {
+        // const other_positions = highcharts_landscape_series[0].slice();
+        // other_positions.splice(js_vars.my_id-1,1);
         const other_positions = highcharts_landscape_series[0].slice();
         other_positions.splice(js_vars.my_id-1,1);
+        let series = [];
+        for (let i=0; i<other_positions.length; i++){
+            dict = {type: 'scatter',
+                    data: [other_positions[i]],
+                    opacity: 0.5,
+                    showInLegend: false,
+                    marker: {
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF',
+                        lineColor: null,
+                        symbol: 'circle',
+                        radius: 6
+                },}
+            series.push(dict);
+            console.log(other_positions[i])
+        }
+        let dict_my = {type: 'scatter',
+                    name: 'My Strategy',
+                    data: [highcharts_landscape_series[0][js_vars.my_id-1]],
+                    opacity: 0.9,
+                    color: '#ff0000',
+                    marker: {
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF',
+                        lineColor: null,
+                        symbol: 'diamond',
+                        radius: 6
+                },};
+        let dict_lanscape = {
+                type: 'line',
+                name: 'Landscape',
+                data: highcharts_landscape_series[1],
+                color: 'blue',
+                marker: {
+                    enabled: false
+                },
+                states: {
+                    hover: {
+                        lineWidth: 0
+                    }
+                },
+                enableMouseTracking: true
+            };
+            let dict_currentValue = {
+                type: 'scatter',
+                name: 'Current Strategy',
+                data: currentValue,
+                color: '#800080',
+                marker: {
+                    symbol: 'triangle',
+                    radius: 6
+                }
+            };
+        series.push(dict_my, dict_lanscape, dict_currentValue);  
         Highcharts.chart('landscape', {
             chart: {
                  height: 600,
@@ -126,56 +228,57 @@
 
             },
 
-            series: [{
-                type: 'line',
-                name: 'Landscape',
-                data: highcharts_landscape_series[1],
-                marker: {
-                    enabled: false
-                },
-                states: {
-                    hover: {
-                        lineWidth: 0
-                    }
-                },
-                enableMouseTracking: true
-            }, {
-                type: 'scatter',
-                name: 'Current value',
-                data: currentValue,
-                color: '#800080',
-                marker: {
-                    symbol: 'triangle',
-                    radius: 6
-                }
-            }, {
-                type: 'scatter',
-                name: 'Other Positions',
-                data: other_positions,
-                color: '#6B8E23',
-                opacity: 0.8,
-                marker: {
-                    lineWidth: 2,
-                    fillColor: '#FFFFFF',
-                    lineColor: null,
-                    symbol: 'circle',
-                    radius: 6
-                },
+            // series: [{
+            //     type: 'line',
+            //     name: 'Landscape',
+            //     data: highcharts_landscape_series[1],
+            //     marker: {
+            //         enabled: false
+            //     },
+            //     states: {
+            //         hover: {
+            //             lineWidth: 0
+            //         }
+            //     },
+            //     enableMouseTracking: true
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Current Strategy',
+            //     data: currentValue,
+            //     color: '#800080',
+            //     marker: {
+            //         symbol: 'triangle',
+            //         radius: 6
+            //     }
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Other Positions',
+            //     data: other_positions,
+            //     color: '#6B8E23',
+            //     opacity: 0.8,
+            //     marker: {
+            //         lineWidth: 2,
+            //         fillColor: '#FFFFFF',
+            //         lineColor: null,
+            //         symbol: 'circle',
+            //         radius: 6
+            //     },
 
-            }, {
-                type: 'scatter',
-                name: 'Your Position',
-                data: [highcharts_landscape_series[0][js_vars.my_id-1]],
-                color: '#ff0000',
-                opacity: 0.8,
-                marker: {
-                    lineWidth: 2,
-                    fillColor: '#FFFFFF',
-                    lineColor: null,
-                    symbol: 'circle',
-                    radius: 6
-                }
-            }],
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Your Position',
+            //     data: [highcharts_landscape_series[0][js_vars.my_id-1]],
+            //     color: '#ff0000',
+            //     opacity: 0.8,
+            //     marker: {
+            //         lineWidth: 2,
+            //         fillColor: '#FFFFFF',
+            //         lineColor: null,
+            //         symbol: 'circle',
+            //         radius: 6
+            //     }
+            // }],
+            series: series,
 
             credits: {
                 enabled: false

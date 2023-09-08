@@ -1,5 +1,5 @@
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/series-label.js"></script>
+<!-- <script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script> -->
 
 <!-- height is needed to avoid scroll to top: https://www.highcharts.com/forum/viewtopic.php?t=12731 -->
 <div id="payoff" style="float:right;width: 40%">
@@ -7,7 +7,37 @@
 </div>
 
 <script>
-    function redrawPayoffChart(series) {
+    function redrawPayoffChart(highcharts_payoff_series, avg_payoff_history) {
+        let dict_my = {type: 'line',
+                    name: 'My Payoff History',
+                    data: highcharts_payoff_series[js_vars.my_id-1],
+                    opacity: 0.8,
+                    color: '#ff0000',
+                    lineWidth:3,
+                    marker: {
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF',
+                        lineColor: null,
+                        symbol: 'diamond',
+                        radius: 3
+                    },
+                    }; 
+        let dict_avg_payoff = {type: 'line',
+                    name: 'Average Payoff History',
+                    data: avg_payoff_history,
+                    color: 'blue',
+                    opacity: 0.6,
+                    lineWidth:3,
+                    marker: {
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF',
+                        lineColor: null,
+                        symbol: 'circle',
+                        radius: 3
+                    },
+                    }; 
+        let series = [];
+        series.push(dict_avg_payoff, dict_my);
         Highcharts.chart('payoff', {
             chart: {
                  height: 350,
@@ -41,7 +71,7 @@
                 },
                 line: {
                     marker: {
-                        enabled: false
+                        enabled: true
                     }
                 }
             },
