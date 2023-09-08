@@ -18,6 +18,7 @@ def read_csv(parameter):
 class C(BaseConstants):
     NAME_IN_URL = 'timing_game'
     PLAYERS_PER_GROUP = None
+<<<<<<< HEAD
     XMAX = read_csv('XMAX')
     XMIN = read_csv('XMIN')
     YMAX = read_csv('YMAX')
@@ -25,6 +26,16 @@ class C(BaseConstants):
     LAMBDA = read_csv('LAMBDA')
     RHO = read_csv('RHO')
     GAMMA = read_csv('GAMMA')
+=======
+    NUM_ROUNDS = 1
+    XMAX = 15
+    XMIN = 5
+    YMAX = 150
+    YMIN = 0
+    LAMBDA = 10
+    RHO = 2
+    GAMMA = 5
+>>>>>>> 987e5341732dfeff64490933b295157dbfcb1a26
     DECIMALS = 2
     SUBPERIOD = read_csv('SUBPERIOD')
     PERIOD_LENGTH = read_csv('PERIOD_LENGTH')
@@ -366,5 +377,9 @@ def custom_export(players):
         player = adj.player
         participant = player.participant
         session = player.session
+<<<<<<< HEAD
         yield [session.code, int(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
                float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, ]
+=======
+        yield [session.code, participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, ]
+>>>>>>> 987e5341732dfeff64490933b295157dbfcb1a26
