@@ -29,6 +29,7 @@ class C(BaseConstants):
     SUBPERIOD = read_csv('SUBPERIOD')
     PERIOD_LENGTH = read_csv('PERIOD_LENGTH')
     NUM_ROUNDS = len(SUBPERIOD)
+    FREEZE_PERIOD = read_csv('FREEZE_PERIOD')
 
 
 class Subsession(BaseSubsession):
@@ -42,6 +43,7 @@ class Group(BaseGroup):
     num_players = models.IntegerField(initial=0)
     group_average_strategies = models.FloatField()
     group_average_payoffs = models.FloatField()
+    group_cum_average_payoffs = models.FloatField()
     
 
 
@@ -49,6 +51,7 @@ class Player(BasePlayer):
     player_strategy = models.FloatField(initial=0.0)
     player_average_strategy = models.FloatField()
     player_average_payoff = models.FloatField()
+    player_cum_average_payoff = models.FloatField()
     
 
 
@@ -58,7 +61,8 @@ class Adjustment(ExtraModel):
     strategy = models.FloatField()
     strategy_payoff = models.FloatField()
     seconds = models.IntegerField(doc="Timestamp (seconds since beginning of trading)")
-    # move = models.BooleanField()
+    move = models.BooleanField()
+    remaining_freeze = models.IntegerField()
 
 
 
@@ -251,7 +255,8 @@ class MyPage(Page):
         # if now_seconds % C.SUBPERIOD == 0:    
             global landscape_coordinate
             global highcharts_landscape_series
-
+            global current_strategies_copy
+            global remaining_freeze_period_for_all
             # print('yes')
             current_id_strategies = []
             for p in group.get_players():
@@ -260,7 +265,26 @@ class MyPage(Page):
             current_id_strategies.sort(key=lambda x: x[0]) #ensure start with player 1
             current_strategies = [i[1] for i in current_id_strategies]
             # print(current_id_strategies)
-
+            move_for_all = [0]*num_players
+            if_freeze_for_all = [0]*num_players
+            if (data == {}) and (group.messages_roundzero == num_players):
+                current_strategies_copy = current_strategies
+                remaining_freeze_period_for_all = [0]*num_players
+            else:
+                for m in range(num_players):
+                    if current_strategies_copy[m] != current_strategies[m]:
+                        move_for_all[m] = 1
+                        remaining_freeze_period_for_all[m] = int(C.FREEZE_PERIOD[player.round_number-1])
+                    else:
+                        if remaining_freeze_period_for_all[m] != 0:
+                            remaining_freeze_period_for_all[m] -= 1    
+                current_strategies_copy = current_strategies
+            for m in range(num_players):
+                if remaining_freeze_period_for_all[m] != 0:
+                    if_freeze_for_all[m] = 1
+            print('move', move_for_all)
+            print('reminaing_freeze',remaining_freeze_period_for_all)
+            print('if freeze', if_freeze_for_all)
             #generate series for bubble and landscape
             bubble_coordinate = generate_bubble_coordinate(player, current_strategies).tolist()
             landscape_coordinate = generate_landscape_coordinate(player, current_strategies).tolist()
@@ -277,6 +301,8 @@ class MyPage(Page):
                     strategy=current_strategies[p.id_in_group-1],
                     strategy_payoff=strategies_payoffs[p.id_in_group-1],
                     seconds=now_seconds,
+                    move=move_for_all[p.id_in_group-1],
+                    remaining_freeze=remaining_freeze_period_for_all[p.id_in_group-1],
                 )
         
             highcharts_landscape_series = []
@@ -311,7 +337,7 @@ class MyPage(Page):
 
         # print(dict(highcharts_series=highcharts_series, highcharts_payoff_series=highcharts_payoff_series))
         
-            return {0: dict(highcharts_series=highcharts_series, highcharts_landscape_series=highcharts_landscape_series, highcharts_payoff_series=highcharts_payoff_series, avg_payoff_history=avg_payoff_history)}
+            return {0: dict(highcharts_series=highcharts_series, highcharts_landscape_series=highcharts_landscape_series, highcharts_payoff_series=highcharts_payoff_series, avg_payoff_history=avg_payoff_history, if_freeze_for_all=if_freeze_for_all)}
 
         if 'slider' in data:
             single_coordinate = [x for x in landscape_coordinate if x[0] == float(data['slider'])]
@@ -328,27 +354,59 @@ class ResultsWaitPage(WaitPage):
         # print(adjustments)
         group_strategies = []
         group_payoffs = []
+        group_cum_payoff = []
         for p in group.get_players():
             player_strategy_history = np.array([adj.strategy for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
-            p.player_average_strategy =round(player_strategy_history.mean(),2)
+            p.player_average_strategy =player_strategy_history.mean()
             player_payoff_history = np.array([adj.strategy_payoff for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
-            p.player_average_payoff = round(player_payoff_history.mean(),2)
-            # print(p.player_average_strategy)
-            # print(p.player_average_payoff)
+            p.player_average_payoff = player_payoff_history.mean()
+            player_cum_payoff = []
+            for rd in p.in_all_rounds():
+                player_cum_payoff.append(rd.player_average_payoff)
+            array_player_cum_payoff = np.array(player_cum_payoff)
+            p.player_cum_average_payoff = array_player_cum_payoff.mean()
+            print(p.player_cum_average_payoff)
+
             group_strategies.append(p.player_average_strategy)
             group_payoffs.append(p.player_average_payoff)
+            group_cum_payoff.append(p.player_cum_average_payoff)
         array_group_strategies = np.array(group_strategies)
         array_group_payoffs = np.array(group_payoffs)
-        group.group_average_strategies = round(array_group_strategies.mean(),2)
-        group.group_average_payoffs = round(array_group_payoffs.mean(),2)
+        array_group_cum_payoff = np.array(group_cum_payoff)
+        group.group_average_strategies = array_group_strategies.mean()
+        group.group_average_payoffs = array_group_payoffs.mean()
+        group.group_cum_average_payoffs = array_group_cum_payoff.mean()
+        print(group.group_cum_average_payoffs)
+       
+        
+
+
+       
+        
+
 
 
 class Results(Page):
     @staticmethod
     def vars_for_template(player: Player):
         group = player.group
+        # player_cum_payoff = []
+        # for rd in player.in_all_rounds():
+        #     player_cum_payoff.append(rd.player_average_payoff)
+        # array_player_cum_payoff = np.array(player_cum_payoff)
+        # player.player_cum_average_payoff = round(array_player_cum_payoff.mean(), 2)
+        # print(player.player_cum_average_payoff)
+        # group_cum_payoff = []
+        # for p in group.get_players():
+        #     group_cum_payoff.append(p.player_cum_average_payoff)
+        # array_group_cum_payoff = np.array(group_cum_payoff)
+        # group.group_cum_average_payoffs = round(array_group_cum_payoff.mean(), 2)
         return dict(
-            in_all_rounds = player.in_all_rounds(),
+            in_all_rounds=player.in_all_rounds(),
+            player_average_payoff=round(player.player_average_payoff, 2),
+            player_cum_average_payoff=round(player.player_cum_average_payoff, 2),
+            group_average_payoffs=round(group.group_average_payoffs, 2),
+            group_cum_average_payoffs=round(group.group_cum_average_payoffs, 2),
             )
 
 
@@ -358,7 +416,7 @@ page_sequence = [WaitToStart, MyPage, ResultsWaitPage, Results]
 def custom_export(players):
     # Export an ExtraModel called "Trial"
 
-    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho', 'participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff', ]
+    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho', 'participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff', 'move', 'remaining_freeze_period']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -367,4 +425,4 @@ def custom_export(players):
         participant = player.participant
         session = player.session
         yield [session.code, int(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
-               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, ]
+               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.move, adj.remaining_freeze]

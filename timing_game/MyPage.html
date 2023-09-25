@@ -123,14 +123,15 @@
   let subperiod = js_vars.subperiod;
   let subperiodThousand = subperiod*1000;
   let sliderValue = 0;
-  
+  var slider = document.getElementById('slider')
 
   var numbers = document.getElementById('statistics')
       var btn1 = document.getElementById('btn1')
       var btn2 = document.getElementById('btn2')
       // console.log(btn1)
       var num = 10.00
-      
+
+
       btn1.addEventListener('click', function () {
         if (numbers.innerHTML != 0) {
           num = parseFloat(num - 0.01).toFixed(2) - 0
@@ -170,8 +171,21 @@
       redrawStrategiesChart(data.highcharts_series);
       //console.log(data.highcharts_landscape_series);
       redrawPayoffChart(data.highcharts_payoff_series, data.avg_payoff_history);
+      numbers.innerHTML = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+      numbers.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+      slider.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
       // secondsSinceChange = 3;
       progress.value=js_vars.subperiod;
+      if(data.if_freeze_for_all[js_vars.my_id-1]==1){
+        btn1.disabled = true;
+        btn2.disabled = true;
+        slider.disabled = true;
+      }else if(data.if_freeze_for_all[js_vars.my_id-1]==0){
+        btn1.disabled = false;
+        btn2.disabled = false;
+        slider.disabled = false;
+      }
+
   } else if ('single_coordinate' in data) {
       redrawLandscapeChartwithCurrentSliderValue(data.single_coordinate, data.highcharts_landscape_series);
 

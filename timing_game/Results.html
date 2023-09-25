@@ -5,21 +5,17 @@
 {{ block content }}
 <table class='table table-bordered text-center' style='width: auto; margin: auto'>
     <tr>
-        <th>Round</th>
-        <th>Your Average Strategy</th>
-        <th>Your Average Payoff</th>
-        <th>Group Average Strategy</th>
-        <th>Group Average Payoff</th>
+        <th>Your Current Round Payoff</th>
+        <th>Your Average Cumulative Payoff</th>
+        <th>Group Current Round Payoff</th>
+        <th>Group Average Cumulative Payoff</th>
     </tr>
-{{ for rd in in_all_rounds }}
     <tr>
-        <td>{{ rd.round_number }}</td>
-        <td>{{ rd.player_average_strategy }}</td>
-        <td>{{ rd.player_average_payoff }}</td>
-        <td>{{ rd.group.group_average_strategies }}</td>
-        <td>{{ rd.group.group_average_payoffs }}</td>
+        <td>{{ player_average_payoff }}</td>
+        <td>{{ player_cum_average_payoff }}</td>
+        <td>{{ group_average_payoffs }}</td>
+        <td>{{ group_cum_average_payoffs }}</td>
     </tr>
-{{ endfor }}
 </table>
 
 {{ next_button }}
