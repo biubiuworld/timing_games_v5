@@ -282,9 +282,7 @@ class MyPage(Page):
             for m in range(num_players):
                 if remaining_freeze_period_for_all[m] != 0:
                     if_freeze_for_all[m] = 1
-            print('move', move_for_all)
-            print('reminaing_freeze',remaining_freeze_period_for_all)
-            print('if freeze', if_freeze_for_all)
+
             #generate series for bubble and landscape
             bubble_coordinate = generate_bubble_coordinate(player, current_strategies).tolist()
             landscape_coordinate = generate_landscape_coordinate(player, current_strategies).tolist()
@@ -365,7 +363,7 @@ class ResultsWaitPage(WaitPage):
                 player_cum_payoff.append(rd.player_average_payoff)
             array_player_cum_payoff = np.array(player_cum_payoff)
             p.player_cum_average_payoff = array_player_cum_payoff.mean()
-            print(p.player_cum_average_payoff)
+
 
             group_strategies.append(p.player_average_strategy)
             group_payoffs.append(p.player_average_payoff)
@@ -376,15 +374,9 @@ class ResultsWaitPage(WaitPage):
         group.group_average_strategies = array_group_strategies.mean()
         group.group_average_payoffs = array_group_payoffs.mean()
         group.group_cum_average_payoffs = array_group_cum_payoff.mean()
-        print(group.group_cum_average_payoffs)
-       
-        
-
 
        
-        
-
-
+  
 
 class Results(Page):
     @staticmethod
