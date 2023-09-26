@@ -37,7 +37,7 @@ class Subsession(BaseSubsession):
 
 
 class Group(BaseGroup):
-    start_timestamp = models.IntegerField()
+    start_timestamp = models.FloatField()
     num_messages = models.IntegerField()
     messages_roundzero = models.IntegerField()
     num_players = models.IntegerField(initial=0)
@@ -148,7 +148,8 @@ def generate_landscape_coordinate(player, current_strategies):
 class WaitToStart(WaitPage):
     @staticmethod
     def after_all_players_arrive(group: Group):
-        group.start_timestamp = int(time.time())
+        # group.start_timestamp = int(time.time())
+        group.start_timestamp = round(int(time.time()*2)/2, 1)
         group.num_messages = 0
         group.messages_roundzero = 0
         xmax = float(C.XMAX[group.round_number-1])
@@ -192,7 +193,7 @@ class MyPage(Page):
 
     @staticmethod
     def js_vars(player: Player): #Passing data from Python to JavaScript
-        return dict(my_id=player.id_in_group, xmax=float(C.XMAX[player.round_number-1]), xmin=float(C.XMIN[player.round_number-1]), ymax=float(C.YMAX[player.round_number-1]), ymin=float(C.YMIN[player.round_number-1]), subperiod=int(C.SUBPERIOD[player.round_number-1]))
+        return dict(my_id=player.id_in_group, xmax=float(C.XMAX[player.round_number-1]), xmin=float(C.XMIN[player.round_number-1]), ymax=float(C.YMAX[player.round_number-1]), ymin=float(C.YMIN[player.round_number-1]), subperiod=float(C.SUBPERIOD[player.round_number-1]))
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -202,14 +203,15 @@ class MyPage(Page):
         return dict(
             xmax=float(C.XMAX[player.round_number-1]), 
             xmin=float(C.XMIN[player.round_number-1]),
-            subperiod=int(C.SUBPERIOD[player.round_number-1]),
+            subperiod=float(C.SUBPERIOD[player.round_number-1]),
 
             )
     
     @staticmethod
     def get_timeout_seconds(player: Player):
         group = player.group
-        return (group.start_timestamp + int(C.PERIOD_LENGTH[group.round_number-1])) - time.time()
+        # return (group.start_timestamp + int(C.PERIOD_LENGTH[group.round_number-1])) - time.time()
+        return int(C.PERIOD_LENGTH[group.round_number-1])
 
     @staticmethod
     def live_method(player: Player, data):
@@ -223,8 +225,12 @@ class MyPage(Page):
         if data == {}: #at beginning, when receive none msg, reset the timestamp
             # print('yes')
             group.messages_roundzero += 1
-            group.start_timestamp =int(time.time())    
-        now_seconds = int(time.time() - group.start_timestamp)
+            # group.start_timestamp =int(time.time()) 
+            group.start_timestamp =round(int(time.time()*2)/2, 1)
+        if float(C.SUBPERIOD[player.round_number-1])<1:
+            now_seconds = round(int(time.time()*2)/2, 1) - group.start_timestamp
+        else:
+            now_seconds = int(time.time()) - group.start_timestamp
         #record the player who made the change
         # print(now_seconds)
     
@@ -416,5 +422,5 @@ def custom_export(players):
         player = adj.player
         participant = player.participant
         session = player.session
-        yield [session.code, int(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
+        yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
                float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.move, adj.remaining_freeze]
