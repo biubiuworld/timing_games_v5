@@ -158,6 +158,7 @@ class WaitToStart(WaitPage):
         for p in group.get_players():
             p.player_strategy = round(random.random() * (xmax - xmin) + xmin, C.DECIMALS)
             group.num_players += 1
+        print(group.num_players)
         #     current_id_strategies.append([p.id_in_group, p.player_strategy])
         # current_id_strategies.sort(key=lambda x: x[0])
             # Adjustment.create(
@@ -227,10 +228,12 @@ class MyPage(Page):
             group.messages_roundzero += 1
             # group.start_timestamp =int(time.time()) 
             group.start_timestamp =round(int(time.time()*2)/2, 1)
+            # group.start_timestamp =round(time.time(), 1)
         if float(C.SUBPERIOD[player.round_number-1])<1:
             now_seconds = round(int(time.time()*2)/2, 1) - group.start_timestamp
         else:
             now_seconds = int(time.time()) - group.start_timestamp
+        # now_seconds = round(time.time() - group.start_timestamp, 1)
         #record the player who made the change
         # print(now_seconds)
     
