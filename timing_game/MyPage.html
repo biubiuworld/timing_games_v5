@@ -134,6 +134,7 @@
 
       btn1.addEventListener('click', function () {
         if (numbers.innerHTML != 0) {
+          num = numbers.value;
           num = parseFloat(num - 0.01).toFixed(2) - 0
           numbers.innerHTML = num
           numbers.value = num
@@ -144,6 +145,7 @@
       btn2.addEventListener('click', function () {
         // num += 0.01
         // numbers.innerHTML = num
+        num = numbers.value;
         num = parseFloat(num + 0.01).toFixed(2) - 0
    
         numbers.innerHTML = num
@@ -151,11 +153,13 @@
         slider.value = num
         liveSend({ 'slider': numbers.value });
       })
+    
+      
 
   timing()
   function timing() {
     setInterval(() => {
-      liveSend({ 'strategy': slider.value });
+      liveSend({ 'strategy': numbers.value });
     }, subperiodThousand);
   }
 
@@ -171,9 +175,9 @@
       redrawStrategiesChart(data.highcharts_series);
       //console.log(data.highcharts_landscape_series);
       redrawPayoffChart(data.highcharts_payoff_series, data.avg_payoff_history);
-      numbers.innerHTML = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-      numbers.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-      slider.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+      // numbers.innerHTML = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+      // numbers.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+      // slider.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
       // secondsSinceChange = 3;
       progress.value=js_vars.subperiod;
       if(data.if_freeze_for_all[js_vars.my_id-1]==1){
@@ -216,15 +220,29 @@
 
   setInterval(function () {
     if(progress.value!=0){
-      progress.value--;
+      progress.value=progress.value-0.1;
     }
     // document.getElementById('secondsSinceChange').innerHTML = secondsSinceChange;
-  }, 1000);
+  }, 100);
+
+ 
 
 //sends an empty message to the server when the page loads
+  // document.addEventListener('DOMContentLoaded', (event) => {
+  //   liveSend({});
+  // });
+
   document.addEventListener('DOMContentLoaded', (event) => {
-    liveSend({});
-  });
+    redrawLandscapeChart(js_vars.highcharts_landscape_series);
+    redrawStrategiesChart(js_vars.highcharts_series);
+    redrawPayoffChart(js_vars.highcharts_payoff_series, js_vars.avg_payoff_history);
+    numbers.value = js_vars.highcharts_landscape_series[0][js_vars.my_id-1][0];
+    console.log(numbers.value);
+    numbers.innerHTML = numbers.value;
+    console.log(numbers.innerHTML);
+    slider.value = numbers.value;
+    });
+  
 
   let customTimerEle = document.getElementById('time-left');
   document.addEventListener("DOMContentLoaded", function (event) {

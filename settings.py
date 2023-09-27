@@ -19,7 +19,7 @@ SESSION_CONFIG_DEFAULTS = dict(
 )
 
 PARTICIPANT_FIELDS = []
-SESSION_FIELDS = []
+SESSION_FIELDS = ['current_strategies_copy', 'avg_payoff_history', 'highcharts_landscape_series', 'highcharts_series', 'highcharts_payoff_series', 'remaining_freeze_period_for_all']
 
 # ISO-639 code
 # for example: de, fr, ja, ko, zh-hans
