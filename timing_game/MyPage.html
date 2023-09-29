@@ -187,6 +187,11 @@
       // numbers.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
       // slider.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
       // secondsSinceChange = 3;
+      // if(js_vars.subperiod<1){
+      //   progress.value=js_vars.subperiod-0.2;
+      // } else {
+      //   progress.value=js_vars.subperiod;
+      // }
       progress.value=js_vars.subperiod;
       if(data.if_freeze_for_all[js_vars.my_id-1]==1){
         btn1.disabled = true;
@@ -228,17 +233,17 @@
 
   setInterval(function () {
     if(progress.value!=0){
-      progress.value=progress.value-0.01;
+      progress.value=progress.value-0.1;
     }
     // document.getElementById('secondsSinceChange').innerHTML = secondsSinceChange;
-  }, 10);
+  }, 100);
 
  
 
 //sends an empty message to the server when the page loads
-  // document.addEventListener('DOMContentLoaded', (event) => {
-  //   liveSend({});
-  // });
+  document.addEventListener('DOMContentLoaded', (event) => {
+    liveSend({});
+  });
 
   // document.addEventListener('DOMContentLoaded', (event) => {
   //   redrawLandscapeChart(js_vars.highcharts_landscape_series);

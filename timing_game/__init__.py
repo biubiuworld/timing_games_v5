@@ -254,11 +254,18 @@ class MyPage(Page):
         #     now_seconds = round(int(time.time()*2)/2, 1) - group.start_timestamp
         # else:
         #     now_seconds = int(time.time()) - group.start_timestamp
-        now_seconds = round(time.time() - group.start_timestamp, 1)
+
+        
         #case 1: initialize the page
-        # if data == {}: #at beginning, when receive none msg, reset the timestamp
-            # group.messages_roundzero += 1
-            # group.start_timestamp =round(int(time.time()*2)/2, 1)
+        if data == {}: #at beginning, when receive none msg, reset the timestamp
+            
+            group.messages_roundzero += 1
+            if group.messages_roundzero ==1:
+                group.start_timestamp =round(time.time(), 1)
+
+        
+        # now_seconds = round(time.time() - group.start_timestamp, 1)
+        # print('sec', now_seconds)
             # current_id_strategies = []
             # avg_payoff_history = []
             # for p in group.get_players():
@@ -310,7 +317,7 @@ class MyPage(Page):
         elif 'strategy' in data:
             player.player_strategy = float(data['strategy'])
             group.num_messages += 1
-            if group.num_messages % num_players == 0:     
+            if group.num_messages % num_players == 0:    
                 current_id_strategies = []
                 for p in group.get_players():
                     current_id_strategies.append([p.id_in_group, p.player_strategy])
@@ -330,11 +337,20 @@ class MyPage(Page):
                         if_freeze_for_all[m] = 1
                 session.current_strategies_copy = current_strategies #replace global strategies by current strategies
 
+                # if float(C.SUBPERIOD[player.round_number-1])<1:
+                #     now_seconds = round(int(time.time()*2)/2, 1) - group.start_timestamp
+                # else:
+                #     now_seconds = int(time.time()) - group.start_timestamp
+                
 
                 #generate series for bubble and landscape
                 bubble_coordinate = generate_bubble_coordinate(player, current_strategies).tolist()
                 landscape_coordinate = generate_landscape_coordinate(player, current_strategies).tolist()
                 strategies_payoffs = [i[1] for i in bubble_coordinate]
+
+                now_seconds = round(time.time() - group.start_timestamp, 1)
+                print(now_seconds)
+
                 array_strategies_payoffs = np.array(strategies_payoffs)
                 avg_strategies_payoffs = array_strategies_payoffs.mean()
                 session.avg_payoff_history.append([now_seconds,avg_strategies_payoffs])
