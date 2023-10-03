@@ -63,7 +63,8 @@ class Adjustment(ExtraModel):
     seconds = models.IntegerField(doc="Timestamp (seconds since beginning of trading)")
     move = models.BooleanField()
     remaining_freeze = models.IntegerField()
-
+    if_freeze_next = models.BooleanField()
+    if_freeze_now = models.BooleanField()
 
 
 #Definition
@@ -182,6 +183,7 @@ class WaitToStart(WaitPage):
         session.highcharts_series = []
         session.highcharts_payoff_series = []
         session.remaining_freeze_period_for_all = [0] * group.num_players
+        session.if_freeze_now = [0] * group.num_players
         for p in group.get_players():
             history = [[0,p.player_strategy]] 
             session.highcharts_series.append(history) #strategy over time plot
@@ -195,6 +197,8 @@ class WaitToStart(WaitPage):
                     seconds=0,
                     move=0,
                     remaining_freeze=0,
+                    if_freeze_next=0,
+                    if_freeze_now=0,
                 )
 
 
@@ -349,7 +353,7 @@ class MyPage(Page):
                 strategies_payoffs = [i[1] for i in bubble_coordinate]
 
                 now_seconds = round(time.time() - group.start_timestamp, 1)
-                print(now_seconds)
+                # print(now_seconds)
 
                 array_strategies_payoffs = np.array(strategies_payoffs)
                 avg_strategies_payoffs = array_strategies_payoffs.mean()
@@ -365,6 +369,8 @@ class MyPage(Page):
                         seconds=now_seconds,
                         move=move_for_all[p.id_in_group-1],
                         remaining_freeze=session.remaining_freeze_period_for_all[p.id_in_group-1],
+                        if_freeze_next=if_freeze_for_all[p.id_in_group-1],
+                        if_freeze_now=session.if_freeze_now[p.id_in_group-1],
                     )
             
                 session.highcharts_landscape_series = []
@@ -372,7 +378,7 @@ class MyPage(Page):
                 session.highcharts_landscape_series.append(bubble_coordinate)
                 # landscape_coordinate_series = dict(data=landscape_coordinate, type='line', name='Landscape')
                 session.highcharts_landscape_series.append(landscape_coordinate)
-                
+                session.if_freeze_now = if_freeze_for_all
                 
                 session.highcharts_series = []
                 for p in group.get_players():
@@ -470,7 +476,7 @@ page_sequence = [WaitToStart, MyPage, ResultsWaitPage, Results]
 def custom_export(players):
     # Export an ExtraModel called "Trial"
 
-    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho', 'participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff', 'move', 'remaining_freeze_period']
+    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho', 'participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff', 'move', 'remaining_freeze_period', 'if_freeze_now']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -479,4 +485,4 @@ def custom_export(players):
         participant = player.participant
         session = player.session
         yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
-               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.move, adj.remaining_freeze]
+               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_now]
