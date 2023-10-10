@@ -97,9 +97,9 @@
 
 {{ block content }}
 
-<p>Use the slider to adjust your strategy in real time. The game remains <span id="time-left" style="color:blue"></span> seconds.
+<p>Use the slider to adjust your strategy in real time. Time remaining <span id="time-left" style="color:blue"></span> seconds.
   <br> 
- Remaining seconds before next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px"></progress></span></p>
+ Time until next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px"></progress></span></p>
 {{ include_sibling 'landscape.html' }}
 <div>{{ include_sibling 'chart.html' }}</div>
 <div>{{ include_sibling 'payoff.html' }}</div>
@@ -174,7 +174,7 @@
  
   var highchartsLandscapeSeries=[];
 
- 
+  let freeze = false; 
 
   function liveRecv(data) {
     //console.log(data)
@@ -197,10 +197,12 @@
         btn1.disabled = true;
         btn2.disabled = true;
         slider.disabled = true;
+        freeze = true;
       }else if(data.if_freeze_for_all[js_vars.my_id-1]==0){
         btn1.disabled = false;
         btn2.disabled = false;
         slider.disabled = false;
+        freeze = false;
       }
 
   } else if ('single_coordinate' in data) {
@@ -232,7 +234,7 @@
   }
 
   setInterval(function () {
-    if(progress.value!=0){
+    if((freeze==false)&&(progress.value!=0)){
       progress.value=progress.value-0.1;
     }
     // document.getElementById('secondsSinceChange').innerHTML = secondsSinceChange;
