@@ -30,6 +30,10 @@ class C(BaseConstants):
     PERIOD_LENGTH = read_csv('PERIOD_LENGTH')
     NUM_ROUNDS = len(SUBPERIOD)
     FREEZE_PERIOD = read_csv('FREEZE_PERIOD')
+    MULTIPLIER = read_csv('MULTIPLIER')
+    EXCHANGE_RATE = 350
+    SHOWUP = 7
+    THRESHOLD = 8000
 
 
 class Subsession(BaseSubsession):
@@ -52,7 +56,10 @@ class Player(BasePlayer):
     player_average_strategy = models.FloatField()
     player_average_payoff = models.FloatField()
     player_cum_average_payoff = models.FloatField()
-    
+    # payment_selected_round = models.IntegerField()
+    payment_payoff = models.FloatField()
+    payment_in_dollar = models.FloatField()
+    total_payment = models.FloatField()
 
 
 class Adjustment(ExtraModel):
@@ -60,6 +67,7 @@ class Adjustment(ExtraModel):
     player = models.Link(Player)
     strategy = models.FloatField()
     strategy_payoff = models.FloatField()
+    multiplier_strategy_payoff = models.FloatField()
     seconds = models.IntegerField(doc="Timestamp (seconds since beginning of trading)")
     move = models.BooleanField()
     remaining_freeze = models.IntegerField()
@@ -74,6 +82,8 @@ def generate_bubble_coordinate(player, current_strategies):
     lam = float(C.LAMBDA[player.round_number-1])
     gam = float(C.GAMMA[player.round_number-1])
     rho = float(C.RHO[player.round_number-1])
+    multiplier = float(C.MULTIPLIER[player.round_number-1])
+
     for strat in current_strategies:
         below_strat = [i for i in current_strategies if i < strat]
         pos = len(below_strat) + 0.5
@@ -98,10 +108,12 @@ def generate_bubble_coordinate(player, current_strategies):
             vy.append(total)
     vy = np.array(vy)
     current_bubble_payoff = ux * vy
+    multiplier_bubble_payoff = multiplier*ux * vy
     
     bubble_coordinate = np.vstack((current_strategies, current_bubble_payoff)).T
+    multiplier_bubble_coordinate = np.vstack((current_strategies, multiplier_bubble_payoff)).T
 
-    return bubble_coordinate
+    return bubble_coordinate, multiplier_bubble_coordinate
 
 
 def generate_landscape_coordinate(player, current_strategies):
@@ -111,6 +123,7 @@ def generate_landscape_coordinate(player, current_strategies):
     rho = float(C.RHO[player.round_number-1])
     xmin = float(C.XMIN[player.round_number-1])
     xmax = float(C.XMAX[player.round_number-1])
+    multiplier = float(C.MULTIPLIER[player.round_number-1])
     landscape_x =  np.arange(xmin, xmax, 1/(10**C.DECIMALS))
     landscape_x = np.round(landscape_x, C.DECIMALS)
     landscape_positions = []
@@ -139,9 +152,10 @@ def generate_landscape_coordinate(player, current_strategies):
             vy.append(total)
     vy = np.array(vy)
     landscape_y = ux * vy
+    multiplier_landscape_y = multiplier*ux*vy
     landscape_coordinate = np.vstack((landscape_x, landscape_y)).T
-    
-    return landscape_coordinate
+    multiplier_landscape_coordinate = np.vstack((landscape_x, multiplier_landscape_y)).T
+    return landscape_coordinate, multiplier_landscape_coordinate
     
 
 
@@ -167,18 +181,26 @@ class WaitToStart(WaitPage):
             initial_id_strategies.append([p.id_in_group, p.player_strategy])
         initial_id_strategies.sort(key=lambda x: x[0]) #make sure the the order starts from player 1
         initial_strategies = [i[1] for i in initial_id_strategies] #a list of strategies
+
         session.current_strategies_copy = initial_strategies #store initial strategies to use in the live page
-        bubble_coordinate = generate_bubble_coordinate(group, initial_strategies).tolist() 
-        landscape_coordinate = generate_landscape_coordinate(group, initial_strategies).tolist()
+        generate_bubble_coordinate_result = generate_bubble_coordinate(group, initial_strategies)
+        generate_landscape_coordinate_result = generate_landscape_coordinate(group, initial_strategies)
+        bubble_coordinate = generate_bubble_coordinate_result[0].tolist() 
+        landscape_coordinate = generate_landscape_coordinate_result[0].tolist()
         strategies_payoffs = [i[1] for i in bubble_coordinate] #a list of payoff for each player
-        array_strategies_payoffs = np.array(strategies_payoffs)
-        avg_strategies_payoffs = array_strategies_payoffs.mean() #avg group payoff in current round
-        session.avg_payoff_history.append([0,avg_strategies_payoffs]) #global store avg group payoff
+
+        multiplier_bubble_coordinate = generate_bubble_coordinate_result[1].tolist() 
+        multiplier_landscape_coordinate = generate_landscape_coordinate_result[1].tolist()
+        multiplier_strategies_payoffs = [i[1] for i in multiplier_bubble_coordinate] #a list of multiplied payoff for each player
+
+        multiplier_array_strategies_payoffs = np.array(multiplier_strategies_payoffs) 
+        multiplier_avg_strategies_payoffs = multiplier_array_strategies_payoffs.mean() #multiplied group avg payoff in current round
+        session.avg_payoff_history.append([0,multiplier_avg_strategies_payoffs]) #global store avg group payoff(multiplied)
 
         #lanscape plot
         session.highcharts_landscape_series = []
-        session.highcharts_landscape_series.append(bubble_coordinate)
-        session.highcharts_landscape_series.append(landscape_coordinate)
+        session.highcharts_landscape_series.append(multiplier_bubble_coordinate)
+        session.highcharts_landscape_series.append(multiplier_landscape_coordinate)
 
         session.highcharts_series = []
         session.highcharts_payoff_series = []
@@ -187,13 +209,14 @@ class WaitToStart(WaitPage):
         for p in group.get_players():
             history = [[0,p.player_strategy]] 
             session.highcharts_series.append(history) #strategy over time plot
-            payoff_history = [[0, strategies_payoffs[p.id_in_group-1]]]
-            session.highcharts_payoff_series.append(payoff_history) #payoff over time plot
+            payoff_history = [[0, multiplier_strategies_payoffs[p.id_in_group-1]]]
+            session.highcharts_payoff_series.append(payoff_history) #multiplied payoff over time plot
             Adjustment.create(
                     player=p,
                     group=group,
                     strategy=p.player_strategy,
                     strategy_payoff=strategies_payoffs[p.id_in_group-1],
+                    multiplier_strategy_payoff=multiplier_strategies_payoffs[p.id_in_group-1],
                     seconds=0,
                     move=0,
                     remaining_freeze=0,
@@ -217,10 +240,10 @@ class MyPage(Page):
             ymax=float(C.YMAX[player.round_number-1]), 
             ymin=float(C.YMIN[player.round_number-1]), 
             subperiod=float(C.SUBPERIOD[player.round_number-1]),
-            highcharts_series=session.highcharts_series, 
-            highcharts_landscape_series=session.highcharts_landscape_series, 
-            highcharts_payoff_series=session.highcharts_payoff_series, 
-            avg_payoff_history=session.avg_payoff_history, 
+            highcharts_series=session.highcharts_series, #strategy over time
+            highcharts_landscape_series=session.highcharts_landscape_series, #multiplied bubble and landscape
+            highcharts_payoff_series=session.highcharts_payoff_series, #multiplied payoff over time plot
+            avg_payoff_history=session.avg_payoff_history, #group avg payoff(multiplied)
             if_freeze_for_all=[0]*num_players,
             )
 
@@ -230,6 +253,7 @@ class MyPage(Page):
             xmax=float(C.XMAX[player.round_number-1]), 
             xmin=float(C.XMIN[player.round_number-1]),
             subperiod=float(C.SUBPERIOD[player.round_number-1]),
+            round_number=player.round_number,
             )
     
     @staticmethod
@@ -240,25 +264,12 @@ class MyPage(Page):
 
     @staticmethod
     def live_method(player: Player, data):
-        # global avg_payoff_history
-        # global highcharts_landscape_series
-        # global highcharts_series
-        # global highcharts_payoff_series 
-        # global current_strategies_copy
-        # global remaining_freeze_period_for_all
-        # global landscape_coordinate
-        
+
         group = player.group
         session = player.group.session
 
-        # group.num_messages += 1
         num_players = group.num_players
         
-        # if float(C.SUBPERIOD[player.round_number-1])<1:
-        #     now_seconds = round(int(time.time()*2)/2, 1) - group.start_timestamp
-        # else:
-        #     now_seconds = int(time.time()) - group.start_timestamp
-
         
         #case 1: initialize the page
         if data == {}: #at beginning, when receive none msg, reset the timestamp
@@ -267,54 +278,8 @@ class MyPage(Page):
             if group.messages_roundzero ==1:
                 group.start_timestamp =round(time.time(), 1)
 
-        
-        # now_seconds = round(time.time() - group.start_timestamp, 1)
-        # print('sec', now_seconds)
-            # current_id_strategies = []
-            # avg_payoff_history = []
-            # for p in group.get_players():
-            #     current_id_strategies.append([p.id_in_group, p.player_strategy])
-            # current_id_strategies.sort(key=lambda x: x[0]) #ensure start with player 1
-            # current_strategies = [i[1] for i in current_id_strategies]
-            # move_for_all = [0]*num_players
-            # if_freeze_for_all = [0]*num_players
-            # remaining_freeze_period_for_all = [0]*num_players
 
-            # current_strategies_copy = current_strategies
-            # bubble_coordinate = generate_bubble_coordinate(group, current_strategies).tolist()
-            # landscape_coordinate = generate_landscape_coordinate(group, current_strategies).tolist()
-            # strategies_payoffs = [i[1] for i in bubble_coordinate]
-            # array_strategies_payoffs = np.array(strategies_payoffs)
-            # avg_strategies_payoffs = array_strategies_payoffs.mean()
-            # avg_payoff_history.append([0,avg_strategies_payoffs])
-            # #lanscape plot
-            # highcharts_landscape_series = []
-            # highcharts_landscape_series.append(bubble_coordinate)
-            # highcharts_landscape_series.append(landscape_coordinate)
-
-            # highcharts_series = []
-            # highcharts_payoff_series = []
-            # remaining_freeze_period_for_all = [0] * num_players
-            # for p in group.get_players():
-            #     history = [[now_seconds,p.player_strategy]]
-            #     highcharts_series.append(history) #strategy over time plot
-            #     payoff_history = [[0, strategies_payoffs[p.id_in_group-1]]]
-            #     highcharts_payoff_series.append(payoff_history) #payoff over time plot
-            
-            # Adjustment.create(
-            #         player=player,
-            #         group=group,
-            #         strategy=p.player_strategy,
-            #         strategy_payoff=strategies_payoffs[p.id_in_group-1],
-            #         seconds=0,
-            #         move=0,
-            #         remaining_freeze=0,
-            #     )     
-            # return {player.id_in_group: dict(highcharts_series=session.highcharts_series, highcharts_landscape_series=session.highcharts_landscape_series, highcharts_payoff_series=session.highcharts_payoff_series, avg_payoff_history=session.avg_payoff_history, if_freeze_for_all=[0]*num_players)}
-
-
-
-        if 'slider' in data:
+        elif 'slider' in data:
             single_coordinate = [x for x in session.highcharts_landscape_series[1] if x[0] == float(data['slider'])]
             return{player.id_in_group: dict(single_coordinate=single_coordinate, highcharts_landscape_series=session.highcharts_landscape_series)}
         
@@ -340,24 +305,25 @@ class MyPage(Page):
                     if session.remaining_freeze_period_for_all[m] != 0:
                         if_freeze_for_all[m] = 1
                 session.current_strategies_copy = current_strategies #replace global strategies by current strategies
-
-                # if float(C.SUBPERIOD[player.round_number-1])<1:
-                #     now_seconds = round(int(time.time()*2)/2, 1) - group.start_timestamp
-                # else:
-                #     now_seconds = int(time.time()) - group.start_timestamp
-                
+              
 
                 #generate series for bubble and landscape
-                bubble_coordinate = generate_bubble_coordinate(player, current_strategies).tolist()
-                landscape_coordinate = generate_landscape_coordinate(player, current_strategies).tolist()
+                generate_bubble_coordinate_result = generate_bubble_coordinate(player, current_strategies)
+                generate_landscape_coordinate_result = generate_landscape_coordinate(player, current_strategies)
+                bubble_coordinate = generate_bubble_coordinate_result[0].tolist()
+                landscape_coordinate = generate_landscape_coordinate_result[0].tolist()
                 strategies_payoffs = [i[1] for i in bubble_coordinate]
+
+                multiplier_bubble_coordinate = generate_bubble_coordinate_result[1].tolist()
+                multiplier_landscape_coordinate = generate_landscape_coordinate_result[1].tolist()
+                multiplier_strategies_payoffs = [i[1] for i in multiplier_bubble_coordinate]
 
                 now_seconds = round(time.time() - group.start_timestamp, 1)
                 # print(now_seconds)
 
-                array_strategies_payoffs = np.array(strategies_payoffs)
-                avg_strategies_payoffs = array_strategies_payoffs.mean()
-                session.avg_payoff_history.append([now_seconds,avg_strategies_payoffs])
+                multiplier_array_strategies_payoffs = np.array(multiplier_strategies_payoffs) 
+                multiplier_avg_strategies_payoffs = multiplier_array_strategies_payoffs.mean() #group avg payoff in current subperiod(multiplied)
+                session.avg_payoff_history.append([now_seconds,multiplier_avg_strategies_payoffs])#group avg over time (multiplied)
                 # print(avg_payoff_history)
                 for p in group.get_players():
                     Adjustment.create(
@@ -366,6 +332,7 @@ class MyPage(Page):
                         # strategy=[adj.strategy for adj in Adjustment.filter(player=p, group=group, seconds=now_seconds)][-1],
                         strategy=current_strategies[p.id_in_group-1],
                         strategy_payoff=strategies_payoffs[p.id_in_group-1],
+                        multiplier_strategy_payoff=multiplier_strategies_payoffs[p.id_in_group-1],
                         seconds=now_seconds,
                         move=move_for_all[p.id_in_group-1],
                         remaining_freeze=session.remaining_freeze_period_for_all[p.id_in_group-1],
@@ -375,31 +342,23 @@ class MyPage(Page):
             
                 session.highcharts_landscape_series = []
                 # bubble_coordinate_series = dict(data=bubble_coordinate, type='scatter', name='Player {}'.format(p.id_in_group))
-                session.highcharts_landscape_series.append(bubble_coordinate)
+                session.highcharts_landscape_series.append(multiplier_bubble_coordinate)
                 # landscape_coordinate_series = dict(data=landscape_coordinate, type='line', name='Landscape')
-                session.highcharts_landscape_series.append(landscape_coordinate)
+                session.highcharts_landscape_series.append(multiplier_landscape_coordinate)
                 session.if_freeze_now = if_freeze_for_all
                 
-                session.highcharts_series = []
+                # session.highcharts_series = [] #strategy over time
                 for p in group.get_players():
-                    history = [[adj.seconds, adj.strategy] for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None]
-
-                    # this is optional. it allows the line
-                    # to go all the way to the right of the graph
-                    # last_strategy = history[-1][1]
-                    # history.append([now_seconds, last_strategy])
-
-                    # series = dict(data=history, type='line', name='Player {}'.format(p.id_in_group))
-                    # highcharts_series.append(series)
-                    session.highcharts_series.append(history)
+                    # history = [[adj.seconds, adj.strategy] for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None]
+                    history = [now_seconds,p.player_strategy]
+                    session.highcharts_series[p.id_in_group-1].append(history)
 
                 #calculate payoff over time
-                session.highcharts_payoff_series = []
+                # session.highcharts_payoff_series = []
                 for p in group.get_players():
-                    payoff_history = [[adj.seconds, adj.strategy_payoff] for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None]
-                    # payoff_series = dict(data=payoff_history, type='area', name='Player {}'.format(p.id_in_group))
-                    # highcharts_payoff_series.append(payoff_series)
-                    session.highcharts_payoff_series.append(payoff_history)
+                    # payoff_history = [[adj.seconds, adj.strategy_payoff] for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None]
+                    payoff_history = [now_seconds, multiplier_strategies_payoffs[p.id_in_group-1]]
+                    session.highcharts_payoff_series[p.id_in_group-1].append(payoff_history)
 
                     
 
@@ -416,30 +375,37 @@ class ResultsWaitPage(WaitPage):
 
     @staticmethod
     def after_all_players_arrive(group: Group):
-        # adjustments = Adjustment.filter(group=group)
-        # print(adjustments)
-        group_strategies = []
+        # group_strategies = []
         group_payoffs = []
         group_cum_payoff = []
         for p in group.get_players():
-            player_strategy_history = np.array([adj.strategy for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
-            p.player_average_strategy =player_strategy_history.mean()
-            player_payoff_history = np.array([adj.strategy_payoff for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
-            p.player_average_payoff = player_payoff_history.mean()
+            # player_strategy_history = np.array([adj.strategy for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
+            # p.player_average_strategy =player_strategy_history.mean()
+            player_payoff_history = np.array([adj.multiplier_strategy_payoff for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
+            p.player_average_payoff = player_payoff_history.mean() #payoff in current round
             player_cum_payoff = []
             for rd in p.in_all_rounds():
-                player_cum_payoff.append(rd.player_average_payoff)
+                player_cum_payoff.append(rd.player_average_payoff) #collect a list of avg payoff over rounds
             array_player_cum_payoff = np.array(player_cum_payoff)
             p.player_cum_average_payoff = array_player_cum_payoff.mean()
 
+            if p.round_number == C.NUM_ROUNDS:
+                print(player_cum_payoff)
+                # p.payment_selected_round = random.randint(3, 6) #the selected payment round
+                select_payoff = [val for val in player_cum_payoff if (val<115)&(val>67)]
+                print(select_payoff)
+                if select_payoff == []:
+                    select_payoff = player_cum_payoff
+                p.payment_payoff = random.choice(select_payoff)
+                p.payment_in_dollar = (p.payment_payoff*120-C.THRESHOLD)/C.EXCHANGE_RATE
 
-            group_strategies.append(p.player_average_strategy)
+            # group_strategies.append(p.player_average_strategy)
             group_payoffs.append(p.player_average_payoff)
             group_cum_payoff.append(p.player_cum_average_payoff)
-        array_group_strategies = np.array(group_strategies)
+        # array_group_strategies = np.array(group_strategies)
         array_group_payoffs = np.array(group_payoffs)
         array_group_cum_payoff = np.array(group_cum_payoff)
-        group.group_average_strategies = array_group_strategies.mean()
+        # group.group_average_strategies = array_group_strategies.mean()
         group.group_average_payoffs = array_group_payoffs.mean()
         group.group_cum_average_payoffs = array_group_cum_payoff.mean()
 
@@ -450,17 +416,6 @@ class Results(Page):
     @staticmethod
     def vars_for_template(player: Player):
         group = player.group
-        # player_cum_payoff = []
-        # for rd in player.in_all_rounds():
-        #     player_cum_payoff.append(rd.player_average_payoff)
-        # array_player_cum_payoff = np.array(player_cum_payoff)
-        # player.player_cum_average_payoff = round(array_player_cum_payoff.mean(), 2)
-        # print(player.player_cum_average_payoff)
-        # group_cum_payoff = []
-        # for p in group.get_players():
-        #     group_cum_payoff.append(p.player_cum_average_payoff)
-        # array_group_cum_payoff = np.array(group_cum_payoff)
-        # group.group_cum_average_payoffs = round(array_group_cum_payoff.mean(), 2)
         return dict(
             in_all_rounds=player.in_all_rounds(),
             player_average_payoff=round(player.player_average_payoff, 2),
@@ -468,15 +423,34 @@ class Results(Page):
             group_average_payoffs=round(group.group_average_payoffs, 2),
             group_cum_average_payoffs=round(group.group_cum_average_payoffs, 2),
             )
+    
+
+    
+class Payment(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == C.NUM_ROUNDS
+    
+    @staticmethod
+    def vars_for_template(player: Player):
+        return dict(
+            # payment_selected_round=player.in_round(C.NUM_ROUNDS).payment_selected_round,
+            payment_payoff=round(player.in_round(C.NUM_ROUNDS).payment_payoff, 2),
+            payment_in_dollar=round(player.in_round(C.NUM_ROUNDS).payment_in_dollar, 2),
+            threshold=C.THRESHOLD,
+            show_up = C.SHOWUP,
+            exchange_rate = C.EXCHANGE_RATE,
+            total_payment = round(round(player.in_round(C.NUM_ROUNDS).payment_in_dollar, 2)+C.SHOWUP,2),
+            )
 
 
-page_sequence = [WaitToStart, MyPage, ResultsWaitPage, Results]
+page_sequence = [WaitToStart, MyPage, ResultsWaitPage, Results, Payment]
 
 
 def custom_export(players):
     # Export an ExtraModel called "Trial"
 
-    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho', 'participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff', 'move', 'remaining_freeze_period', 'if_freeze_now']
+    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho', 'multiplier','participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_now']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -485,4 +459,4 @@ def custom_export(players):
         participant = player.participant
         session = player.session
         yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
-               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_now]
+               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_now]

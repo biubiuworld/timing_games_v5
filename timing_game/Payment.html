@@ -1,0 +1,34 @@
+{{ block title }}
+    Experiment Payment
+{{ endblock }}
+{{ block scripts }}
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+  {{ endblock }}
+{{ block content }}
+<p>You have completed the experiment. 
+    <br>
+    <p>Your payoff in randomly selected round is {{ payment_payoff }}.</p>
+    <p>The threshold is {{ threshold }} and the conversion rate is {{ exchange_rate }}</p>
+
+    <p>Therefore, your payment in selected round is \( ( {{ payment_payoff }}*120 - {{ threshold }} ) /{{ exchange_rate }} = $ {{ payment_in_dollar }} \)</p>
+<h5> <b style="color:#1E8BDC"> Your total payment is as follows: </b> </h5>
+<table class="table">
+    <tr>
+    <td>Payment in Selected Round</td>
+    <td>${{ payment_in_dollar }}</td>
+</tr>
+<tr>
+    <td>Show-up Fee</td>
+    <td>${{ show_up }}</td>
+</tr>
+<tr>
+    <td><b>Total Payment</b></td>
+    <td>${{ total_payment }}</td>
+</tr>
+</table>
+{{ endblock }}
+
+

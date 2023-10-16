@@ -94,10 +94,13 @@
 {{ endblock }}
 
 
+{{ block title }}
+    Round {{ round_number }}
+{{ endblock }}
 
 {{ block content }}
 
-<p>Use the slider to adjust your strategy in real time. Time remaining <span id="time-left" style="color:blue"></span> seconds.
+<p>Use the slider to adjust your position in real time. Time remaining <span id="time-left" style="color:blue"></span> seconds.
   <br> 
  Time until next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px"></progress></span></p>
 {{ include_sibling 'landscape.html' }}

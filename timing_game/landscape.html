@@ -27,7 +27,7 @@
             series.push(dict);
         }
         let dict_my = {type: 'scatter',
-                    name: 'My Strategy',
+                    name: 'My Position',
                     data: [highcharts_landscape_series[0][js_vars.my_id-1]],
                     opacity: 0.9,
                     color: '#228B22',
@@ -57,7 +57,7 @@
 
         Highcharts.chart('landscape', {
             chart: {
-                 height: 500,
+                 height: 450,
                         },
 
             title: {
@@ -73,7 +73,7 @@
 
             xAxis: {
                 title: {
-                    text: 'Strategy'
+                    text: 'Position'
                 },
                 min: js_vars.xmin,
                 max: js_vars.xmax
@@ -159,7 +159,7 @@
             // console.log(other_positions[i])
         }
         let dict_my = {type: 'scatter',
-                    name: 'My Strategy',
+                    name: 'My Position',
                     data: [highcharts_landscape_series[0][js_vars.my_id-1]],
                     opacity: 0.9,
                     color: '#228B22',
@@ -187,7 +187,7 @@
             };
             let dict_currentValue = {
                 type: 'scatter',
-                name: 'Current Strategy',
+                name: 'Current Position',
                 data: currentValue,
                 color: '#800080',
                 marker: {
@@ -198,7 +198,7 @@
         series.push(dict_my, dict_lanscape, dict_currentValue);  
         Highcharts.chart('landscape', {
             chart: {
-                 height: 500,
+                 height: 450,
                         },
 
             title: {
@@ -214,7 +214,7 @@
 
             xAxis: {
                 title: {
-                    text: 'Strategy'
+                    text: 'Position'
                 },
                 min: js_vars.xmin,
                 max: js_vars.xmax
