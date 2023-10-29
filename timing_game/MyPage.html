@@ -102,7 +102,7 @@
 
 <p>Use the slider to adjust your position in real time. Time remaining <span id="time-left" style="color:blue"></span> seconds.
   <br> 
- Time until next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px"></progress></span></p>
+ Time until next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px;"></progress></span><span id="freeze_label" style="color:green;"><b>You can move now</b></span></p>
 {{ include_sibling 'landscape.html' }}
 <div>{{ include_sibling 'chart.html' }}</div>
 <div>{{ include_sibling 'payoff.html' }}</div>
@@ -204,11 +204,17 @@
         btn2.disabled = true;
         slider.disabled = true;
         freeze = true;
+        document.getElementById('freeze_label').style.fontWeight = '900';
+        document.getElementById('freeze_label').style.color = 'blue';
+        document.getElementById('freeze_label').innerHTML = 'You are frozen now';
       }else if(data.if_freeze_for_all[js_vars.my_id-1]==0){
         btn1.disabled = false;
         btn2.disabled = false;
         slider.disabled = false;
         freeze = false;
+        document.getElementById('freeze_label').style.fontWeight = '900';
+        document.getElementById('freeze_label').style.color = 'green';
+        document.getElementById('freeze_label').innerHTML = 'You can move now';
       }
 
   } else if ('single_coordinate' in data) {
