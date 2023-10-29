@@ -5,7 +5,14 @@ import numpy as np
 import time
 
 doc = """
-Timing Games"""
+Timing Games
+move: move if strategy changes since last time
+remaining_freeze: freeze in the following n subperiods
+if_freeze_now: whether is freezed in current subperiod
+
+
+
+"""
 
 import csv
 def read_csv(parameter):
@@ -60,6 +67,7 @@ class Player(BasePlayer):
     payment_payoff = models.FloatField()
     payment_in_dollar = models.FloatField()
     total_payment = models.FloatField()
+    bug = models.IntegerField()
 
 
 class Adjustment(ExtraModel):
@@ -205,6 +213,7 @@ class WaitToStart(WaitPage):
         session.highcharts_series = []
         session.highcharts_payoff_series = []
         session.remaining_freeze_period_for_all = [0] * group.num_players
+        session.if_freeze_next = [0]* group.num_players
         session.if_freeze_now = [0] * group.num_players
         for p in group.get_players():
             history = [[0,p.player_strategy]] 
@@ -244,7 +253,7 @@ class MyPage(Page):
             highcharts_landscape_series=session.highcharts_landscape_series, #multiplied bubble and landscape
             highcharts_payoff_series=session.highcharts_payoff_series, #multiplied payoff over time plot
             avg_payoff_history=session.avg_payoff_history, #group avg payoff(multiplied)
-            if_freeze_for_all=[0]*num_players,
+            # if_freeze_for_all=[0]*num_players,
             )
 
     @staticmethod
@@ -279,12 +288,14 @@ class MyPage(Page):
                 group.start_timestamp =round(time.time(), 1)
 
 
-        elif 'slider' in data:
-            single_coordinate = [x for x in session.highcharts_landscape_series[1] if x[0] == float(data['slider'])]
-            return{player.id_in_group: dict(single_coordinate=single_coordinate, highcharts_landscape_series=session.highcharts_landscape_series)}
+
         
         elif 'strategy' in data:
-            player.player_strategy = float(data['strategy'])
+            if (float(data['strategy']) < float(C.XMAX[player.round_number-1])) & (float(data['strategy']) > float(C.XMIN[player.round_number-1]))&(session.remaining_freeze_period_for_all[player.id_in_group-1] == 0):
+                player.player_strategy = float(data['strategy'])
+            else:
+                player.bug = 1
+            
             group.num_messages += 1
             if group.num_messages % num_players == 0:    
                 current_id_strategies = []
@@ -293,17 +304,22 @@ class MyPage(Page):
                 current_id_strategies.sort(key=lambda x: x[0]) #ensure start with player 1
                 current_strategies = [i[1] for i in current_id_strategies]
                 move_for_all = [0]*num_players
-                if_freeze_for_all = [0]*num_players
                 
                 for m in range(num_players):
                     if session.current_strategies_copy[m] != current_strategies[m]:
-                        move_for_all[m] = 1
-                        session.remaining_freeze_period_for_all[m] = int(C.FREEZE_PERIOD[player.round_number-1])
-                    else:
-                        if session.remaining_freeze_period_for_all[m] != 0:
-                            session.remaining_freeze_period_for_all[m] -= 1    
+                        move_for_all[m] = 1 #if strategy changes, move should be 1
+                        session.remaining_freeze_period_for_all[m] = int(C.FREEZE_PERIOD[player.round_number-1]) #Once move this time, remaining freeze for n subperiod
+                    elif session.current_strategies_copy[m] == current_strategies[m]: #however, if no change in strategy, evaluate whether due to freeze or self-freeze
+                        if session.remaining_freeze_period_for_all[m] > 0:
+                            session.remaining_freeze_period_for_all[m] -= 1   
+                     
                     if session.remaining_freeze_period_for_all[m] != 0:
-                        if_freeze_for_all[m] = 1
+                        session.if_freeze_next[m] = 1
+                    else:
+                        session.if_freeze_next[m] = 0
+                
+                print('move_for_all', move_for_all)
+                print('if_freeze_Next', session.if_freeze_next)
                 session.current_strategies_copy = current_strategies #replace global strategies by current strategies
               
 
@@ -336,7 +352,7 @@ class MyPage(Page):
                         seconds=now_seconds,
                         move=move_for_all[p.id_in_group-1],
                         remaining_freeze=session.remaining_freeze_period_for_all[p.id_in_group-1],
-                        if_freeze_next=if_freeze_for_all[p.id_in_group-1],
+                        if_freeze_next=session.if_freeze_next[p.id_in_group-1],
                         if_freeze_now=session.if_freeze_now[p.id_in_group-1],
                     )
             
@@ -345,7 +361,7 @@ class MyPage(Page):
                 session.highcharts_landscape_series.append(multiplier_bubble_coordinate)
                 # landscape_coordinate_series = dict(data=landscape_coordinate, type='line', name='Landscape')
                 session.highcharts_landscape_series.append(multiplier_landscape_coordinate)
-                session.if_freeze_now = if_freeze_for_all
+                session.if_freeze_now = session.if_freeze_next
                 
                 # session.highcharts_series = [] #strategy over time
                 for p in group.get_players():
@@ -364,9 +380,11 @@ class MyPage(Page):
 
             # print(dict(highcharts_series=highcharts_series, highcharts_payoff_series=highcharts_payoff_series))
             
-                return {0: dict(highcharts_series=session.highcharts_series, highcharts_landscape_series=session.highcharts_landscape_series, highcharts_payoff_series=session.highcharts_payoff_series, avg_payoff_history=session.avg_payoff_history, if_freeze_for_all=if_freeze_for_all)}
+                return {0: dict(highcharts_series=session.highcharts_series, highcharts_landscape_series=session.highcharts_landscape_series, highcharts_payoff_series=session.highcharts_payoff_series, avg_payoff_history=session.avg_payoff_history, if_freeze_for_all=session.if_freeze_next)}
 
-
+        elif 'slider' in data:
+            single_coordinate = [x for x in session.highcharts_landscape_series[1] if x[0] == float(data['slider'])]
+            return{player.id_in_group: dict(single_coordinate=single_coordinate, highcharts_landscape_series=session.highcharts_landscape_series, if_freeze_for_all=session.if_freeze_next)}
 
 
 
@@ -450,7 +468,7 @@ page_sequence = [WaitToStart, MyPage, ResultsWaitPage, Results, Payment]
 def custom_export(players):
     # Export an ExtraModel called "Trial"
 
-    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho', 'multiplier','participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_now']
+    yield ['session','subperiod','freeze_period', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho', 'multiplier','participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now', 'bug']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -458,5 +476,8 @@ def custom_export(players):
         player = adj.player
         participant = player.participant
         session = player.session
-        yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
-               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_now]
+        yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.FREEZE_PERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), 
+               float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
+               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), 
+               participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, 
+               adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now, player.bug]

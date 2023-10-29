@@ -197,6 +197,9 @@
       // }
       progress.value=js_vars.subperiod;
       if(data.if_freeze_for_all[js_vars.my_id-1]==1){
+        numbers.innerHTML = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+        numbers.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+        slider.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
         btn1.disabled = true;
         btn2.disabled = true;
         slider.disabled = true;
@@ -209,8 +212,9 @@
       }
 
   } else if ('single_coordinate' in data) {
+    if(data.if_freeze_for_all[js_vars.my_id-1]==0){
       redrawLandscapeChartwithCurrentSliderValue(data.single_coordinate, data.highcharts_landscape_series);
-
+    }
   }
     }
 
