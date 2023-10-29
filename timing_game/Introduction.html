@@ -1,0 +1,23 @@
+{{ block title }}Introduction{{ endblock }}
+{{ block content }}
+
+    <div class="card bg-light m-3">
+    <div class="card-body">
+
+{{ if player.round_number == 1 }}
+    <p> Welcome to the experiment! </p>
+    <p> Once you've completed reading the instructions, please select the "next" button to get ready to initiate the two-round practice game. The practice games are meant to help you get familiar with the official games, so they are <b>unpaid</b>.</p>    
+    <p> Practice game 1 lasts 240 seconds without freeze time. </p>  
+    <p> Practice game 2 lasts 150 seconds with freeze time. </p>  
+{{ else }}
+
+<p> Please select the "next" button to start the offical games. The official games contain 16 rounds, each lasting 150 seconds.</p>   
+{{ endif }}
+</div>
+</div>
+
+    {{ next_button }}
+
+{{ endblock }}
+
+

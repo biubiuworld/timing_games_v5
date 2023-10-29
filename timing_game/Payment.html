@@ -13,7 +13,7 @@
     <p>Your payoff in randomly selected round is {{ payment_payoff }}.</p>
     <p>The threshold is {{ threshold }} and the conversion rate is {{ exchange_rate }}</p>
 
-    <p>Therefore, your payment in selected round is \( ( {{ payment_payoff }}*120 - {{ threshold }} ) /{{ exchange_rate }} = $ {{ payment_in_dollar }} \)</p>
+    <p>Therefore, your payment in selected round is \( ( {{ payment_payoff }}*{{ period_length }} - {{ threshold }} ) /{{ exchange_rate }} = $ {{ payment_in_dollar }} \)</p>
 <h5> <b style="color:#1E8BDC"> Your total payment is as follows: </b> </h5>
 <table class="table">
     <tr>

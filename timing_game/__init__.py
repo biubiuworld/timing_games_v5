@@ -38,9 +38,12 @@ class C(BaseConstants):
     NUM_ROUNDS = len(SUBPERIOD)
     FREEZE_PERIOD = read_csv('FREEZE_PERIOD')
     MULTIPLIER = read_csv('MULTIPLIER')
-    EXCHANGE_RATE = 350
+    EXCHANGE_RATE = 550
     SHOWUP = 7
-    THRESHOLD = 8000
+    THRESHOLD =9000
+    PRACTICE_ROUND_NUM = 2
+    SELECT_LOW_BOUND = 85
+    SELECT_HIGH_BOUND = 120
 
 
 class Subsession(BaseSubsession):
@@ -165,7 +168,10 @@ def generate_landscape_coordinate(player, current_strategies):
     multiplier_landscape_coordinate = np.vstack((landscape_x, multiplier_landscape_y)).T
     return landscape_coordinate, multiplier_landscape_coordinate
     
-
+class Introduction(Page):
+    @staticmethod
+    def is_displayed(player):
+        return (player.round_number == 1) or (player.round_number == C.PRACTICE_ROUND_NUM+1)
 
 
 class WaitToStart(WaitPage):
@@ -262,7 +268,8 @@ class MyPage(Page):
             xmax=float(C.XMAX[player.round_number-1]), 
             xmin=float(C.XMIN[player.round_number-1]),
             subperiod=float(C.SUBPERIOD[player.round_number-1]),
-            round_number=player.round_number,
+            round_number=player.round_number if player.round_number<C.PRACTICE_ROUND_NUM+1 else player.round_number-C.PRACTICE_ROUND_NUM,
+            practice_round_num = C.PRACTICE_ROUND_NUM,
             )
     
     @staticmethod
@@ -318,8 +325,8 @@ class MyPage(Page):
                     else:
                         session.if_freeze_next[m] = 0
                 
-                print('move_for_all', move_for_all)
-                print('if_freeze_Next', session.if_freeze_next)
+                # print('move_for_all', move_for_all)
+                # print('if_freeze_Next', session.if_freeze_next)
                 session.current_strategies_copy = current_strategies #replace global strategies by current strategies
               
 
@@ -396,26 +403,35 @@ class ResultsWaitPage(WaitPage):
         # group_strategies = []
         group_payoffs = []
         group_cum_payoff = []
+        period_length = int(C.PERIOD_LENGTH[group.round_number-1])
         for p in group.get_players():
             # player_strategy_history = np.array([adj.strategy for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
             # p.player_average_strategy =player_strategy_history.mean()
             player_payoff_history = np.array([adj.multiplier_strategy_payoff for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
             p.player_average_payoff = player_payoff_history.mean() #payoff in current round
             player_cum_payoff = []
-            for rd in p.in_all_rounds():
-                player_cum_payoff.append(rd.player_average_payoff) #collect a list of avg payoff over rounds
-            array_player_cum_payoff = np.array(player_cum_payoff)
-            p.player_cum_average_payoff = array_player_cum_payoff.mean()
+            if group.round_number < C.PRACTICE_ROUND_NUM+1:
+                for rd in p.in_all_rounds():
+                    player_cum_payoff.append(rd.player_average_payoff) #collect a list of avg payoff over rounds
+                array_player_cum_payoff = np.array(player_cum_payoff)
+                p.player_cum_average_payoff = array_player_cum_payoff.mean()
+            elif group.round_number > C.PRACTICE_ROUND_NUM:
+                for rd in p.in_all_rounds():
+                    player_cum_payoff.append(rd.player_average_payoff) #collect a list of avg payoff over rounds
+                player_cum_payoff = player_cum_payoff[C.PRACTICE_ROUND_NUM:] #exclude practice round payoff
+                array_player_cum_payoff = np.array(player_cum_payoff)
+                p.player_cum_average_payoff = array_player_cum_payoff.mean()                
 
+#select payoff round in the final round
             if p.round_number == C.NUM_ROUNDS:
-                print(player_cum_payoff)
+                # print(player_cum_payoff)
                 # p.payment_selected_round = random.randint(3, 6) #the selected payment round
-                select_payoff = [val for val in player_cum_payoff if (val<115)&(val>67)]
-                print(select_payoff)
+                select_payoff = [val for val in player_cum_payoff if (val<C.SELECT_HIGH_BOUND)&(val>C.SELECT_LOW_BOUND)]
                 if select_payoff == []:
                     select_payoff = player_cum_payoff
                 p.payment_payoff = random.choice(select_payoff)
-                p.payment_in_dollar = (p.payment_payoff*120-C.THRESHOLD)/C.EXCHANGE_RATE
+                p.payment_in_dollar = (p.payment_payoff*period_length-C.THRESHOLD)/C.EXCHANGE_RATE
+                p.total_payment = round(p.payment_in_dollar + C.SHOWUP, 2)
 
             # group_strategies.append(p.player_average_strategy)
             group_payoffs.append(p.player_average_payoff)
@@ -453,16 +469,17 @@ class Payment(Page):
     def vars_for_template(player: Player):
         return dict(
             # payment_selected_round=player.in_round(C.NUM_ROUNDS).payment_selected_round,
+            period_length = int(C.PERIOD_LENGTH[player.round_number-1]),
             payment_payoff=round(player.in_round(C.NUM_ROUNDS).payment_payoff, 2),
             payment_in_dollar=round(player.in_round(C.NUM_ROUNDS).payment_in_dollar, 2),
             threshold=C.THRESHOLD,
             show_up = C.SHOWUP,
             exchange_rate = C.EXCHANGE_RATE,
-            total_payment = round(round(player.in_round(C.NUM_ROUNDS).payment_in_dollar, 2)+C.SHOWUP,2),
+            total_payment = round(player.in_round(C.NUM_ROUNDS).total_payment,2),
             )
 
 
-page_sequence = [WaitToStart, MyPage, ResultsWaitPage, Results, Payment]
+page_sequence = [Introduction, WaitToStart, MyPage, ResultsWaitPage, Results, Payment]
 
 
 def custom_export(players):
