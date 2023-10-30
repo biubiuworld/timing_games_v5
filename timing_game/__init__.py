@@ -300,8 +300,10 @@ class MyPage(Page):
         elif 'strategy' in data:
             if (float(data['strategy']) < float(C.XMAX[player.round_number-1])) & (float(data['strategy']) > float(C.XMIN[player.round_number-1]))&(session.remaining_freeze_period_for_all[player.id_in_group-1] == 0):
                 player.player_strategy = float(data['strategy'])
-            else:
+            elif (float(data['strategy']) > float(C.XMAX[player.round_number-1])) or (float(data['strategy']) < float(C.XMIN[player.round_number-1])):
                 player.bug = 1
+            elif (float(data['strategy']) != player.player_strategy) & (session.remaining_freeze_period_for_all[player.id_in_group-1] != 0):
+                player.bug = 2
             
             group.num_messages += 1
             if group.num_messages % num_players == 0:    
@@ -324,6 +326,7 @@ class MyPage(Page):
                         session.if_freeze_next[m] = 1
                     else:
                         session.if_freeze_next[m] = 0
+                if_freeze_next_copy = session.if_freeze_next.copy()
                 
                 # print('move_for_all', move_for_all)
                 # print('if_freeze_Next', session.if_freeze_next)
@@ -348,6 +351,11 @@ class MyPage(Page):
                 multiplier_avg_strategies_payoffs = multiplier_array_strategies_payoffs.mean() #group avg payoff in current subperiod(multiplied)
                 session.avg_payoff_history.append([now_seconds,multiplier_avg_strategies_payoffs])#group avg over time (multiplied)
                 # print(avg_payoff_history)
+                print('strategy', current_strategies)
+                print('move', move_for_all)
+                print('remaining_freeze', session.remaining_freeze_period_for_all)
+                print('if_freeze_Next', session.if_freeze_next)
+                print('if_freeze_now', session.if_freeze_now)
                 for p in group.get_players():
                     Adjustment.create(
                         player=p,
@@ -368,7 +376,7 @@ class MyPage(Page):
                 session.highcharts_landscape_series.append(multiplier_bubble_coordinate)
                 # landscape_coordinate_series = dict(data=landscape_coordinate, type='line', name='Landscape')
                 session.highcharts_landscape_series.append(multiplier_landscape_coordinate)
-                session.if_freeze_now = session.if_freeze_next
+                session.if_freeze_now = if_freeze_next_copy
                 
                 # session.highcharts_series = [] #strategy over time
                 for p in group.get_players():
@@ -485,7 +493,7 @@ page_sequence = [Introduction, WaitToStart, MyPage, ResultsWaitPage, Results, Pa
 def custom_export(players):
     # Export an ExtraModel called "Trial"
 
-    yield ['session','subperiod','freeze_period', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho', 'multiplier','participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now', 'bug']
+    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho','freeze_period', 'multiplier','participant', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now', 'bug']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -493,8 +501,8 @@ def custom_export(players):
         player = adj.player
         participant = player.participant
         session = player.session
-        yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.FREEZE_PERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), 
+        yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), 
                float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
-               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), 
-               participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, 
-               adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now, player.bug]
+               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]),int(C.FREEZE_PERIOD[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), 
+               participant.code, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now, player.bug]
+  
