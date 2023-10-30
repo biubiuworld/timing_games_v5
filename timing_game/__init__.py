@@ -351,11 +351,11 @@ class MyPage(Page):
                 multiplier_avg_strategies_payoffs = multiplier_array_strategies_payoffs.mean() #group avg payoff in current subperiod(multiplied)
                 session.avg_payoff_history.append([now_seconds,multiplier_avg_strategies_payoffs])#group avg over time (multiplied)
                 # print(avg_payoff_history)
-                print('strategy', current_strategies)
-                print('move', move_for_all)
-                print('remaining_freeze', session.remaining_freeze_period_for_all)
-                print('if_freeze_Next', session.if_freeze_next)
-                print('if_freeze_now', session.if_freeze_now)
+                # print('strategy', current_strategies)
+                # print('move', move_for_all)
+                # print('remaining_freeze', session.remaining_freeze_period_for_all)
+                # print('if_freeze_Next', session.if_freeze_next)
+                # print('if_freeze_now', session.if_freeze_now)
                 for p in group.get_players():
                     Adjustment.create(
                         player=p,
