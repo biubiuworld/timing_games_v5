@@ -3,6 +3,7 @@ import time
 import random
 import numpy as np
 import time
+import math
 
 doc = """
 Timing Games
@@ -38,13 +39,14 @@ class C(BaseConstants):
     NUM_ROUNDS = len(SUBPERIOD)
     FREEZE_PERIOD = read_csv('FREEZE_PERIOD')
     MULTIPLIER = read_csv('MULTIPLIER')
+    INITIALIZATION = read_csv('INITIALIZATION')
+    GAME_TYPE = read_csv('GAME_TYPE')
     EXCHANGE_RATE = 550
     SHOWUP = 7
     THRESHOLD =9000
     PRACTICE_ROUND_NUM = 2
     SELECT_LOW_BOUND = 85
     SELECT_HIGH_BOUND = 120
-
 
 class Subsession(BaseSubsession):
     pass
@@ -86,7 +88,76 @@ class Adjustment(ExtraModel):
     if_freeze_now = models.BooleanField()
 
 
-#Definition
+#Functions
+def generate_initial_strategies(group, num_of_players):
+    lam = float(C.LAMBDA[group.round_number-1])
+    gam = float(C.GAMMA[group.round_number-1])
+    rho = float(C.RHO[group.round_number-1])
+    xmin = float(C.XMIN[group.round_number-1])
+    xmax = float(C.XMAX[group.round_number-1])
+    initialization = float(C.INITIALIZATION[group.round_number-1])
+    game_type = str(C.GAME_TYPE[group.round_number-1])
+    strategies = []
+
+    if initialization == 0:
+        for i in range(num_of_players):
+            strategies.append(round(random.random() * (xmax - xmin) + xmin, 2))
+
+    elif initialization == 1: #NE initialization
+        if game_type == 'fear':
+            cdfmin = max(0, round((lam - math.sqrt(1+lam**2) * math.sqrt(1-(16*(1+rho)*(gam-1))/((gam +3*rho)*(3*gam +rho)))),2))
+            cdfmax = lam
+            cdfx = np.round(np.arange(cdfmin, cdfmax, 0.01), 2)
+            cdfy = gam - rho + np.sqrt((gam + rho) ** 2 - 4 * ((1 + rho) * (gam - 1) * (1 + lam ** 2))/(1 + 2 * lam * cdfx - cdfx ** 2))
+            y_ind = 0
+            cdfy = cdfy/2
+            for i in range(num_of_players):
+            # y_ind is the index in the cdf to compare to
+            # we increment it until it is greater than or equal to the percentage of players set so far
+                if (i+1)/num_of_players <= cdfy[y_ind]:
+                    strategies.append(cdfx[y_ind])
+                else:
+                    while (y_ind < len(cdfy) - 1) and ((i+1)/num_of_players > cdfy[y_ind]):
+                        y_ind = y_ind + 1
+                # there are some rounding issues when we reach the end of the cdf
+                # if we reach the end (for the last few players), just use the last value
+                    if y_ind >= len(cdfy):
+                        strategies.append(cdfx[len(cdfy)])
+                    else:
+                        strategies.append(cdfx[y_ind])
+
+
+        elif game_type == 'greed':
+            cdfmin = lam
+            cdfmax = lam + math.sqrt(1+lam**2)/(math.sqrt(1+16*rho*gam/((3*gam-3*rho-2)*(gam-rho+2))))
+            cdfx = np.round(np.arange(cdfmin, cdfmax, 0.01), 2)
+            cdfy = gam - rho - np.sqrt((gam + rho) ** 2 - 4 * gam * rho * (1 + lam ** 2) / (1 + 2 * lam * cdfx - cdfx ** 2))
+            y_ind = len(cdfy) - 1
+            cdfy = cdfy / 2            
+
+            i = num_of_players
+            while i > 0:
+                # y_ind is the index in the cdf to compare to
+                # we decrement it until it is less than or equal to the percentage of players set so far
+                if (i-1)/num_of_players >= cdfy[y_ind]:
+                    strategies.append(cdfx[y_ind])
+                else:
+                    while y_ind > 0 and (i-1)/num_of_players < cdfy[y_ind]:
+                        y_ind = y_ind - 1
+                    # there are some rounding issues when we reach the end of the cdf
+                    # if we reach the end (for the last few players), just use the last value
+                    if y_ind == 0:
+                        strategies.append(cdfx[0])
+                    else:
+                        strategies.append(cdfx[y_ind])
+                i = i - 1
+
+    elif initialization > 1:
+        for i in range(num_of_players):
+                strategies.append(initialization)
+    return strategies    
+
+
 def generate_bubble_coordinate(player, current_strategies):
     current_positions = []
     current_ties = []
@@ -94,10 +165,16 @@ def generate_bubble_coordinate(player, current_strategies):
     gam = float(C.GAMMA[player.round_number-1])
     rho = float(C.RHO[player.round_number-1])
     multiplier = float(C.MULTIPLIER[player.round_number-1])
+    game_type = str(C.GAME_TYPE[player.round_number-1])
 
     for strat in current_strategies:
         below_strat = [i for i in current_strategies if i < strat]
-        pos = len(below_strat) + 0.5
+        if game_type == 'fear':
+            pos = len(below_strat) + 1
+        elif game_type == 'greed':
+            pos = len(below_strat) 
+        else:
+            pos = len(below_strat) + 0.5
         current_positions.append(pos)
 
         equal_strat = [i for i in current_strategies if i == strat]
@@ -139,9 +216,15 @@ def generate_landscape_coordinate(player, current_strategies):
     landscape_x = np.round(landscape_x, C.DECIMALS)
     landscape_positions = []
     landscape_ties = []
+    game_type = str(C.GAME_TYPE[player.round_number-1])
     for strat in landscape_x:
         below_strat = [i for i in current_strategies if i < strat]
-        pos = len(below_strat) + 0.5
+        if game_type == 'fear':
+            pos = len(below_strat) + 1
+        elif game_type == 'greed':
+            pos = len(below_strat) 
+        else:
+            pos = len(below_strat) + 0.5
         landscape_positions.append(pos)
 
         equal_strat = [i for i in current_strategies if i == strat]
@@ -179,6 +262,8 @@ class WaitToStart(WaitPage):
     def after_all_players_arrive(group: Group):
         # group.start_timestamp = int(time.time())
         session = group.session #use session to store global group data
+        print(group.id_in_subsession)
+
         session.avg_payoff_history = []
         # group.start_timestamp = round(int(time.time()*2)/2, 1)
         group.start_timestamp = round(time.time(), 1)
@@ -190,8 +275,12 @@ class WaitToStart(WaitPage):
         initial_id_strategies = [] #collect initial id and strategies
         # assign initial strategies
         for p in group.get_players():
-            p.player_strategy = round(random.random() * (xmax - xmin) + xmin, C.DECIMALS)
+            # p.player_strategy = round(random.random() * (xmax - xmin) + xmin, C.DECIMALS)
             group.num_players += 1
+            # initial_id_strategies.append([p.id_in_group, p.player_strategy])
+        strategies = generate_initial_strategies(group, group.num_players)
+        for p in group.get_players():
+            p.player_strategy = strategies[p.id_in_group-1]
             initial_id_strategies.append([p.id_in_group, p.player_strategy])
         initial_id_strategies.sort(key=lambda x: x[0]) #make sure the the order starts from player 1
         initial_strategies = [i[1] for i in initial_id_strategies] #a list of strategies
@@ -200,10 +289,12 @@ class WaitToStart(WaitPage):
         generate_bubble_coordinate_result = generate_bubble_coordinate(group, initial_strategies)
         generate_landscape_coordinate_result = generate_landscape_coordinate(group, initial_strategies)
         bubble_coordinate = generate_bubble_coordinate_result[0].tolist() 
+        print(bubble_coordinate)
         landscape_coordinate = generate_landscape_coordinate_result[0].tolist()
         strategies_payoffs = [i[1] for i in bubble_coordinate] #a list of payoff for each player
 
         multiplier_bubble_coordinate = generate_bubble_coordinate_result[1].tolist() 
+        print(multiplier_bubble_coordinate)
         multiplier_landscape_coordinate = generate_landscape_coordinate_result[1].tolist()
         multiplier_strategies_payoffs = [i[1] for i in multiplier_bubble_coordinate] #a list of multiplied payoff for each player
 
@@ -438,7 +529,7 @@ class ResultsWaitPage(WaitPage):
                 if select_payoff == []:
                     select_payoff = player_cum_payoff
                 p.payment_payoff = random.choice(select_payoff)
-                p.payment_in_dollar = (p.payment_payoff*period_length-C.THRESHOLD)/C.EXCHANGE_RATE
+                p.payment_in_dollar = round((p.payment_payoff*period_length-C.THRESHOLD)/C.EXCHANGE_RATE,2)
                 p.total_payment = round(p.payment_in_dollar + C.SHOWUP, 2)
 
             # group_strategies.append(p.player_average_strategy)
