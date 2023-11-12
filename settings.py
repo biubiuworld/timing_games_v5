@@ -18,6 +18,14 @@ SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point=1.00, participation_fee=0.00, doc=""
 )
 
+ROOMS = [
+    dict(
+        name='TimingGames',
+        display_name="TimingGames",
+        participant_label_file='timing_game/_rooms/participant_label.txt',
+    ),
+]
+
 PARTICIPANT_FIELDS = []
 SESSION_FIELDS = ['current_strategies_copy', 'avg_payoff_history', 'highcharts_landscape_series', 'highcharts_series', 'highcharts_payoff_series', 'remaining_freeze_period_for_all', 'if_freeze_next', 'if_freeze_now']
 
