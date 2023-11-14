@@ -17,14 +17,14 @@ if_freeze_now: whether is freezed in current subperiod
 
 import csv
 def read_csv(parameter):
-    input_file = csv.DictReader(open("timing_game/configs/demo.csv"))
+    input_file = csv.DictReader(open("pilot_part2/configs/demo.csv"))
     parameter_list = []
     for row in input_file:
         parameter_list.append(row[str(parameter)])
     return parameter_list
 
 class C(BaseConstants):
-    NAME_IN_URL = 'timing_game'
+    NAME_IN_URL = 'pilot_part2'
     PLAYERS_PER_GROUP = None
     XMAX = read_csv('XMAX')
     XMIN = read_csv('XMIN')
@@ -43,10 +43,10 @@ class C(BaseConstants):
     GAME_TYPE = read_csv('GAME_TYPE')
     EXCHANGE_RATE = 500
     SHOWUP = 7
-    THRESHOLD =8000
-    PRACTICE_ROUND_NUM = 2
-    SELECT_LOW_BOUND = 90
-    SELECT_HIGH_BOUND = 130
+    THRESHOLD =9000
+    PRACTICE_ROUND_NUM = 0
+    SELECT_LOW_BOUND = 100
+    SELECT_HIGH_BOUND = 140
 
 class Subsession(BaseSubsession):
     pass
@@ -155,10 +155,9 @@ def generate_initial_strategies(group, num_of_players):
     elif initialization > 1:
         for i in range(num_of_players):
                 strategies.append(round(lam+(random.random() * 0.2 - 0.2/2), 2))
-                
+    
     #randomize the order of strategies
     random.shuffle(strategies)
-
     return strategies    
 
 

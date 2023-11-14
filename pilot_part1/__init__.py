@@ -17,14 +17,14 @@ if_freeze_now: whether is freezed in current subperiod
 
 import csv
 def read_csv(parameter):
-    input_file = csv.DictReader(open("timing_game/configs/demo.csv"))
+    input_file = csv.DictReader(open("pilot_part1/configs/demo.csv"))
     parameter_list = []
     for row in input_file:
         parameter_list.append(row[str(parameter)])
     return parameter_list
 
 class C(BaseConstants):
-    NAME_IN_URL = 'timing_game'
+    NAME_IN_URL = 'pilot_part1'
     PLAYERS_PER_GROUP = None
     XMAX = read_csv('XMAX')
     XMIN = read_csv('XMIN')
@@ -41,12 +41,12 @@ class C(BaseConstants):
     MULTIPLIER = read_csv('MULTIPLIER')
     INITIALIZATION = read_csv('INITIALIZATION')
     GAME_TYPE = read_csv('GAME_TYPE')
-    EXCHANGE_RATE = 500
+    EXCHANGE_RATE = 550
     SHOWUP = 7
-    THRESHOLD =8000
+    THRESHOLD =9000
     PRACTICE_ROUND_NUM = 2
-    SELECT_LOW_BOUND = 90
-    SELECT_HIGH_BOUND = 130
+    SELECT_LOW_BOUND = 85
+    SELECT_HIGH_BOUND = 120
 
 class Subsession(BaseSubsession):
     pass
@@ -155,10 +155,10 @@ def generate_initial_strategies(group, num_of_players):
     elif initialization > 1:
         for i in range(num_of_players):
                 strategies.append(round(lam+(random.random() * 0.2 - 0.2/2), 2))
-                
+    
     #randomize the order of strategies
     random.shuffle(strategies)
-
+    
     return strategies    
 
 
@@ -562,27 +562,32 @@ class Results(Page):
             )
     
 
-    
-class Payment(Page):
+class EndPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.round_number == C.NUM_ROUNDS
+        
     
-    @staticmethod
-    def vars_for_template(player: Player):
-        return dict(
-            # payment_selected_round=player.in_round(C.NUM_ROUNDS).payment_selected_round,
-            period_length = int(C.PERIOD_LENGTH[player.round_number-1]),
-            payment_payoff=round(player.in_round(C.NUM_ROUNDS).payment_payoff, 2),
-            payment_in_dollar=round(player.in_round(C.NUM_ROUNDS).payment_in_dollar, 2),
-            threshold=C.THRESHOLD,
-            show_up = C.SHOWUP,
-            exchange_rate = C.EXCHANGE_RATE,
-            total_payment = round(player.in_round(C.NUM_ROUNDS).total_payment,2),
-            )
+# class Payment(Page):
+#     @staticmethod
+#     def is_displayed(player):
+#         return player.round_number == C.NUM_ROUNDS
+    
+#     @staticmethod
+#     def vars_for_template(player: Player):
+#         return dict(
+#             # payment_selected_round=player.in_round(C.NUM_ROUNDS).payment_selected_round,
+#             period_length = int(C.PERIOD_LENGTH[player.round_number-1]),
+#             payment_payoff=round(player.in_round(C.NUM_ROUNDS).payment_payoff, 2),
+#             payment_in_dollar=round(player.in_round(C.NUM_ROUNDS).payment_in_dollar, 2),
+#             threshold=C.THRESHOLD,
+#             show_up = C.SHOWUP,
+#             exchange_rate = C.EXCHANGE_RATE,
+#             total_payment = round(player.in_round(C.NUM_ROUNDS).total_payment,2),
+#             )
 
 
-page_sequence = [Introduction, WaitToStart, MyPage, ResultsWaitPage, Results, Payment]
+page_sequence = [Introduction, WaitToStart, MyPage, ResultsWaitPage, Results, EndPage]
 
 
 def custom_export(players):
@@ -598,6 +603,7 @@ def custom_export(players):
         session = player.session
         yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), 
                float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
-               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]),int(C.FREEZE_PERIOD[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), int(C.INITIALIZATION[player.round_number-1]), str(C.GAME_TYPE[player.round_number-1]),
+               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]),int(C.FREEZE_PERIOD[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), int(C.INITIALIZATION[player.round_number-1]), str(C.GAME_TYPE[player.round_number-1]), 
                participant.code, participant.label, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now, player.bug]
   
+
