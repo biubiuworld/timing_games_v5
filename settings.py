@@ -1,24 +1,24 @@
 from os import environ
 
 SESSION_CONFIGS = [
-    # dict(
-    #     name='timing_game',
-    #     display_name="Timing Games",
-    #     app_sequence=['timing_game'],
-    #     num_demo_participants=3,
-    # ),
+    dict(
+        name='timing_game',
+        display_name="Timing Games",
+        app_sequence=['timing_game'],
+        num_demo_participants=3,
+    ),
     # dict(
     #     name='pilot_part1',
     #     display_name="Timing Games p1",
     #     app_sequence=['pilot_part1'],
     #     num_demo_participants=3,
     # ),    
-    dict(
-        name='pilot_part2',
-        display_name="Timing Games p2",
-        app_sequence=['pilot_part2'],
-        num_demo_participants=3,
-    ), 
+    # dict(
+    #     name='pilot_part2',
+    #     display_name="Timing Games p2",
+    #     app_sequence=['pilot_part2'],
+    #     num_demo_participants=3,
+    # ), 
 ]
 
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs

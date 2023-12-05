@@ -1,7 +1,12 @@
 {{ block title }}
     Results
 {{ endblock }}
-
+{{ block scripts }}
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+  {{ endblock }}
 {{ block content }}
 <table class='table table-bordered text-center' style='width: auto; margin: auto'>
     <tr>
@@ -17,7 +22,35 @@
         <td>{{ group_cum_average_payoffs }}</td>
     </tr>
 </table>
+<br>
+<br>
+{{ if player.round_number == 1 }}
+<div class="card bg-light m-3">
+    <div class="card-body">
 
+        <h3>
+            Information about Payment
+        </h3>
+
+    <p>
+        At the end of the last round, the computer will randomly select one of the non-practice rounds for payment.
+    </p>
+        <p>
+        The threshold is 1,000 and the conversion rate is 180 points per dollar today.
+       </p>
+        <p>
+<ol>
+    <li>If in the selected round you had an average payoff rate of 15, your take home payment would be \( ( 15*150 - 1000 ) /180 = $6.9 \) plus the show-up fee of $7.</li>
+    <li>If in the selected round you had an average payoff rate of 20, your take home payment would be \( ( 20*150 - 1000 ) /180 = $11.1 \) plus the show-up fee of $7.</li>
+    <li>If in the selected round you had an average payoff rate of 25, your take home payment would be \( ( 25*150 - 1000 ) /180 = $15.3 \) plus the show-up fee of $7.</li>
+    
+</ol>
+        </p>
+
+
+</div>
+</div>
+{{ endif }}
 {{ next_button }}
 {{ endblock }}
 

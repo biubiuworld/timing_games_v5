@@ -41,12 +41,13 @@ class C(BaseConstants):
     MULTIPLIER = read_csv('MULTIPLIER')
     INITIALIZATION = read_csv('INITIALIZATION')
     GAME_TYPE = read_csv('GAME_TYPE')
-    EXCHANGE_RATE = 500
+    LOWER_BOUND = read_csv('LOWER_BOUND')
+    EXCHANGE_RATE = 180
     SHOWUP = 7
-    THRESHOLD =8000
+    THRESHOLD =1000
     PRACTICE_ROUND_NUM = 2
-    SELECT_LOW_BOUND = 90
-    SELECT_HIGH_BOUND = 130
+    SELECT_LOW_BOUND = 12
+    SELECT_HIGH_BOUND = 28
 
 class Subsession(BaseSubsession):
     pass
@@ -170,6 +171,7 @@ def generate_bubble_coordinate(player, current_strategies):
     rho = float(C.RHO[player.round_number-1])
     multiplier = float(C.MULTIPLIER[player.round_number-1])
     game_type = str(C.GAME_TYPE[player.round_number-1])
+    lower_bound = float(C.LOWER_BOUND[player.round_number-1])
 
     for strat in current_strategies:
         below_strat = [i for i in current_strategies if i < strat]
@@ -200,7 +202,7 @@ def generate_bubble_coordinate(player, current_strategies):
             vy.append(total)
     vy = np.array(vy)
     current_bubble_payoff = ux * vy
-    multiplier_bubble_payoff = multiplier*ux * vy
+    multiplier_bubble_payoff = multiplier*ux * vy - lower_bound
     
     bubble_coordinate = np.vstack((current_strategies, current_bubble_payoff)).T
     multiplier_bubble_coordinate = np.vstack((current_strategies, multiplier_bubble_payoff)).T
@@ -216,6 +218,7 @@ def generate_landscape_coordinate(player, current_strategies):
     xmin = float(C.XMIN[player.round_number-1])
     xmax = float(C.XMAX[player.round_number-1])
     multiplier = float(C.MULTIPLIER[player.round_number-1])
+    lower_bound = float(C.LOWER_BOUND[player.round_number-1])
     landscape_x =  np.arange(xmin, xmax, 1/(10**C.DECIMALS))
     landscape_x = np.round(landscape_x, C.DECIMALS)
     landscape_positions = []
@@ -250,7 +253,7 @@ def generate_landscape_coordinate(player, current_strategies):
             vy.append(total)
     vy = np.array(vy)
     landscape_y = ux * vy
-    multiplier_landscape_y = multiplier*ux*vy
+    multiplier_landscape_y = multiplier*ux*vy - lower_bound
     landscape_coordinate = np.vstack((landscape_x, landscape_y)).T
     multiplier_landscape_coordinate = np.vstack((landscape_x, multiplier_landscape_y)).T
     return landscape_coordinate, multiplier_landscape_coordinate
