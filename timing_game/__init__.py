@@ -273,7 +273,7 @@ class WaitToStart(WaitPage):
 
         session.avg_payoff_history = []
         # group.start_timestamp = round(int(time.time()*2)/2, 1)
-        group.start_timestamp = round(time.time(), 1)
+        group.start_timestamp = round(time.time()- 1705600000, 1) 
         group.num_messages = 0
         group.messages_roundzero = 0
         xmax = float(C.XMAX[group.round_number-1])
@@ -390,7 +390,7 @@ class MyPage(Page):
             
             group.messages_roundzero += 1
             if group.messages_roundzero ==1:
-                group.start_timestamp =round(time.time(), 1)
+                group.start_timestamp =round(time.time()- 1705600000, 1) 
 
 
 
@@ -442,7 +442,7 @@ class MyPage(Page):
                 multiplier_landscape_coordinate = generate_landscape_coordinate_result[1].tolist()
                 multiplier_strategies_payoffs = [i[1] for i in multiplier_bubble_coordinate]
 
-                now_seconds = round(time.time() - group.start_timestamp, 1)
+                now_seconds = round(time.time()- 1705600000 - group.start_timestamp, 1)
                 # print(now_seconds)
 
                 multiplier_array_strategies_payoffs = np.array(multiplier_strategies_payoffs) 
