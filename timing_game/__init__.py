@@ -44,7 +44,7 @@ class C(BaseConstants):
     LOWER_BOUND = read_csv('LOWER_BOUND')
     EXCHANGE_RATE = 180
     SHOWUP = 7
-    THRESHOLD =1000
+    THRESHOLD =500
     PRACTICE_ROUND_NUM = 2
     SELECT_LOW_BOUND = 12
     SELECT_HIGH_BOUND = 28
@@ -54,11 +54,11 @@ class Subsession(BaseSubsession):
 
 
 class Group(BaseGroup):
-    start_timestamp = models.FloatField()
+    # start_timestamp = models.FloatField()
     num_messages = models.IntegerField()
     messages_roundzero = models.IntegerField()
     num_players = models.IntegerField(initial=0)
-    group_average_strategies = models.FloatField()
+    # group_average_strategies = models.FloatField()
     group_average_payoffs = models.FloatField()
     group_cum_average_payoffs = models.FloatField()
     
@@ -66,14 +66,14 @@ class Group(BaseGroup):
 
 class Player(BasePlayer):
     player_strategy = models.FloatField(initial=0.0)
-    player_average_strategy = models.FloatField()
+    # player_average_strategy = models.FloatField()
     player_average_payoff = models.FloatField()
     player_cum_average_payoff = models.FloatField()
     # payment_selected_round = models.IntegerField()
     payment_payoff = models.FloatField()
     payment_in_dollar = models.FloatField()
     total_payment = models.FloatField()
-    bug = models.IntegerField()
+    # bug = models.IntegerField()
 
 
 class Adjustment(ExtraModel):
@@ -82,7 +82,7 @@ class Adjustment(ExtraModel):
     strategy = models.FloatField()
     strategy_payoff = models.FloatField()
     multiplier_strategy_payoff = models.FloatField()
-    seconds = models.IntegerField(doc="Timestamp (seconds since beginning of trading)")
+    seconds = models.FloatField(doc="Timestamp (seconds since beginning of trading)")
     move = models.BooleanField()
     remaining_freeze = models.IntegerField()
     if_freeze_next = models.BooleanField()
@@ -201,8 +201,8 @@ def generate_bubble_coordinate(player, current_strategies):
             total = total/current_ties[i]
             vy.append(total)
     vy = np.array(vy)
-    current_bubble_payoff = ux * vy
-    multiplier_bubble_payoff = multiplier*ux * vy - lower_bound
+    current_bubble_payoff = np.round(ux * vy, decimals=3)
+    multiplier_bubble_payoff = np.round(multiplier*ux * vy - lower_bound, decimals=3)
     
     bubble_coordinate = np.vstack((current_strategies, current_bubble_payoff)).T
     multiplier_bubble_coordinate = np.vstack((current_strategies, multiplier_bubble_payoff)).T
@@ -252,8 +252,8 @@ def generate_landscape_coordinate(player, current_strategies):
             total = total/landscape_ties[i]
             vy.append(total)
     vy = np.array(vy)
-    landscape_y = ux * vy
-    multiplier_landscape_y = multiplier*ux*vy - lower_bound
+    landscape_y = np.round(ux * vy,3)
+    multiplier_landscape_y = np.round(multiplier*ux*vy - lower_bound, 3)
     landscape_coordinate = np.vstack((landscape_x, landscape_y)).T
     multiplier_landscape_coordinate = np.vstack((landscape_x, multiplier_landscape_y)).T
     return landscape_coordinate, multiplier_landscape_coordinate
@@ -272,8 +272,9 @@ class WaitToStart(WaitPage):
         # print(group.id_in_subsession)
 
         session.avg_payoff_history = []
+        session.start_timestamp = round(time.time(), 1) 
         # group.start_timestamp = round(int(time.time()*2)/2, 1)
-        group.start_timestamp = round(time.time()- 1705600000, 1) 
+        # group.start_timestamp = round(time.time()- 1705600000, 1) 
         group.num_messages = 0
         group.messages_roundzero = 0
         xmax = float(C.XMAX[group.round_number-1])
@@ -390,21 +391,18 @@ class MyPage(Page):
             
             group.messages_roundzero += 1
             if group.messages_roundzero ==1:
-                group.start_timestamp =round(time.time()- 1705600000, 1) 
+                session.start_timestamp =round(time.time(), 1) 
 
 
 
         
         elif 'strategy' in data:
-            if (float(data['strategy']) < float(C.XMAX[player.round_number-1])) & (float(data['strategy']) > float(C.XMIN[player.round_number-1]))&(session.remaining_freeze_period_for_all[player.id_in_group-1] == 0):
+            if (float(data['strategy']) <= float(C.XMAX[player.round_number-1])) & (float(data['strategy']) >= float(C.XMIN[player.round_number-1]))&(session.remaining_freeze_period_for_all[player.id_in_group-1] == 0):
                 player.player_strategy = float(data['strategy'])
-            elif (float(data['strategy']) > float(C.XMAX[player.round_number-1])) or (float(data['strategy']) < float(C.XMIN[player.round_number-1])):
-                player.bug = 1
-            elif (float(data['strategy']) != player.player_strategy) & (session.remaining_freeze_period_for_all[player.id_in_group-1] != 0):
-                player.bug = 2
             
             group.num_messages += 1
-            if group.num_messages % num_players == 0:    
+            if group.num_messages % num_players == 0:   
+                group.num_messages = 0
                 current_id_strategies = []
                 for p in group.get_players():
                     current_id_strategies.append([p.id_in_group, p.player_strategy])
@@ -442,7 +440,7 @@ class MyPage(Page):
                 multiplier_landscape_coordinate = generate_landscape_coordinate_result[1].tolist()
                 multiplier_strategies_payoffs = [i[1] for i in multiplier_bubble_coordinate]
 
-                now_seconds = round(time.time()- 1705600000 - group.start_timestamp, 1)
+                now_seconds = round(time.time()- session.start_timestamp, 1)
                 # print(now_seconds)
 
                 multiplier_array_strategies_payoffs = np.array(multiplier_strategies_payoffs) 
@@ -514,19 +512,19 @@ class ResultsWaitPage(WaitPage):
             # player_strategy_history = np.array([adj.strategy for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
             # p.player_average_strategy =player_strategy_history.mean()
             player_payoff_history = np.array([adj.multiplier_strategy_payoff for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
-            p.player_average_payoff = player_payoff_history.mean() #payoff in current round
+            p.player_average_payoff = round(player_payoff_history.mean(),3) #payoff in current round
             player_cum_payoff = []
             if group.round_number < C.PRACTICE_ROUND_NUM+1:
                 for rd in p.in_all_rounds():
                     player_cum_payoff.append(rd.player_average_payoff) #collect a list of avg payoff over rounds
                 array_player_cum_payoff = np.array(player_cum_payoff)
-                p.player_cum_average_payoff = array_player_cum_payoff.mean()
+                p.player_cum_average_payoff = round(array_player_cum_payoff.mean(),3)
             elif group.round_number > C.PRACTICE_ROUND_NUM:
                 for rd in p.in_all_rounds():
                     player_cum_payoff.append(rd.player_average_payoff) #collect a list of avg payoff over rounds
                 player_cum_payoff = player_cum_payoff[C.PRACTICE_ROUND_NUM:] #exclude practice round payoff
                 array_player_cum_payoff = np.array(player_cum_payoff)
-                p.player_cum_average_payoff = array_player_cum_payoff.mean()                
+                p.player_cum_average_payoff = round(array_player_cum_payoff.mean(),3)               
 
 #select payoff round in the final round
             if p.round_number == C.NUM_ROUNDS:
@@ -546,8 +544,8 @@ class ResultsWaitPage(WaitPage):
         array_group_payoffs = np.array(group_payoffs)
         array_group_cum_payoff = np.array(group_cum_payoff)
         # group.group_average_strategies = array_group_strategies.mean()
-        group.group_average_payoffs = array_group_payoffs.mean()
-        group.group_cum_average_payoffs = array_group_cum_payoff.mean()
+        group.group_average_payoffs = round(array_group_payoffs.mean(),3)
+        group.group_cum_average_payoffs = round(array_group_cum_payoff.mean(),3)
 
        
   
@@ -591,7 +589,7 @@ page_sequence = [Introduction, WaitToStart, MyPage, ResultsWaitPage, Results, Pa
 def custom_export(players):
     # Export an ExtraModel called "Trial"
 
-    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho','freeze_period', 'multiplier','initialization_code','game_type', 'participant','participant_label', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now', 'bug']
+    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho','freeze_period', 'multiplier','initialization_code','game_type', 'participant','participant_label', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -602,5 +600,5 @@ def custom_export(players):
         yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), 
                float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
                float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]),int(C.FREEZE_PERIOD[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), int(C.INITIALIZATION[player.round_number-1]), str(C.GAME_TYPE[player.round_number-1]),
-               participant.code, participant.label, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now, player.bug]
+               participant.code, participant.label, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now]
   
