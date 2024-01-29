@@ -387,16 +387,16 @@ class MyPage(Page):
         
         
         #case 1: initialize the page
-        # if data == {}: #at beginning, when receive none msg, reset the timestamp
+        if data == {}: #at beginning, when receive none msg, reset the timestamp
             
-        #     group.messages_roundzero += 1
-        #     if group.messages_roundzero ==1:
-        #         session.start_timestamp =str(round(time.time(), 1)) 
+            group.messages_roundzero += 1
+            if group.messages_roundzero ==1:
+                session.start_timestamp =str(round(time.time(), 1)) 
 
 
 
         
-        if 'strategy' in data:
+        elif 'strategy' in data:
             if (float(data['strategy']) <= float(C.XMAX[player.round_number-1])) & (float(data['strategy']) >= float(C.XMIN[player.round_number-1]))&(session.remaining_freeze_period_for_all[player.id_in_group-1] == 0):
                 player.player_strategy = float(data['strategy'])
             
