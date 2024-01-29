@@ -272,7 +272,7 @@ class WaitToStart(WaitPage):
         # print(group.id_in_subsession)
 
         session.avg_payoff_history = []
-        session.start_timestamp = round(time.time(), 1) 
+        # session.start_timestamp = round(time.time(), 1) 
         # group.start_timestamp = round(int(time.time()*2)/2, 1)
         # group.start_timestamp = round(time.time()- 1705600000, 1) 
         group.num_messages = 0
@@ -390,7 +390,7 @@ class MyPage(Page):
         if data == {}: #at beginning, when receive none msg, reset the timestamp
             
             group.messages_roundzero += 1
-            if group.messages_roundzero ==1:
+            if group.messages_roundzero ==num_players:
                 session.start_timestamp =round(time.time(), 1) 
 
 
