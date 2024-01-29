@@ -272,7 +272,7 @@ class WaitToStart(WaitPage):
         # print(group.id_in_subsession)
 
         session.avg_payoff_history = []
-        session.start_timestamp = round(time.time(), 1) 
+        session.start_timestamp = str(round(time.time(), 1)) 
         # group.start_timestamp = round(int(time.time()*2)/2, 1)
         # group.start_timestamp = round(time.time()- 1705600000, 1) 
         group.num_messages = 0
@@ -391,7 +391,7 @@ class MyPage(Page):
             
             group.messages_roundzero += 1
             if group.messages_roundzero ==1:
-                session.start_timestamp =round(time.time(), 1) 
+                session.start_timestamp =str(round(time.time(), 1)) 
 
 
 
@@ -440,11 +440,11 @@ class MyPage(Page):
                 multiplier_landscape_coordinate = generate_landscape_coordinate_result[1].tolist()
                 multiplier_strategies_payoffs = [i[1] for i in multiplier_bubble_coordinate]
 
-                now_seconds = round(time.time()- session.start_timestamp, 1)
+                now_seconds = round(time.time()- float(session.start_timestamp), 1)
                 # print(now_seconds)
 
                 multiplier_array_strategies_payoffs = np.array(multiplier_strategies_payoffs) 
-                multiplier_avg_strategies_payoffs = multiplier_array_strategies_payoffs.mean() #group avg payoff in current subperiod(multiplied)
+                multiplier_avg_strategies_payoffs = round(multiplier_array_strategies_payoffs.mean(),3) #group avg payoff in current subperiod(multiplied)
                 session.avg_payoff_history.append([now_seconds,multiplier_avg_strategies_payoffs])#group avg over time (multiplied)
                 # print(avg_payoff_history)
                 # print('strategy', current_strategies)
