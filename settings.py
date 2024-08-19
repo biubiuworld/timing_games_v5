@@ -1,11 +1,17 @@
 from os import environ
 
 SESSION_CONFIGS = [
-    dict(
-        name='timing_game',
+    # dict(
+    #     name='timing_game',
+    #     display_name="Timing Games",
+    #     app_sequence=['timing_game'],
+    #     num_demo_participants=3,
+    # ),
+        dict(
+        name='individual_game',
         display_name="Timing Games",
-        app_sequence=['timing_game'],
-        num_demo_participants=3,
+        app_sequence=['individual_game'],
+        num_demo_participants=1,
     ),
     # dict(
     #     name='pilot_part1',
@@ -38,7 +44,7 @@ ROOMS = [
     ),
 ]
 
-PARTICIPANT_FIELDS = []
+PARTICIPANT_FIELDS = ['avg_group_payoff_history', 'highcharts_landscape_series', 'highcharts_series', 'highcharts_payoff_series','remaining_freeze_period_for_all', 'if_freeze_next', 'if_freeze_now', 'if_freeze_next_all']
 SESSION_FIELDS = ['current_strategies_copy', 'avg_payoff_history', 'highcharts_landscape_series', 'highcharts_series', 'highcharts_payoff_series', 'remaining_freeze_period_for_all', 'if_freeze_next', 'if_freeze_now', 'start_timestamp']
 
 # ISO-639 code
