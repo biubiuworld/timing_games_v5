@@ -96,6 +96,7 @@ class Adjustment(ExtraModel):
     group = models.Link(Group)
     player = models.Link(Player)
     player_id_index = models.IntegerField()
+    str_strategies = models.LongStringField()
     strategy = models.FloatField()
     strategy_payoff = models.FloatField()
     multiplier_strategy_payoff = models.FloatField()
@@ -425,6 +426,7 @@ class WaitToStart(WaitPage):
                     player=player,
                     group=player.group,
                     player_id_index=player.player_id_index, # add dat to export table
+                    str_strategies=player.str_strategies,
                     strategy=player.player_strategy,
                     strategy_payoff=strategies_payoffs[player.player_id_index],
                     multiplier_strategy_payoff=multiplier_strategies_payoffs[player.player_id_index],
@@ -509,7 +511,7 @@ class MyPage(Page):
             
             selected_bots = random.sample(bots_id_index, num_move)
             for bot_idx in  selected_bots:
-                current_strategies[bot_idx] = player.peak_payoff_location + random.random() * TREMBLING - TREMBLING/2
+                current_strategies[bot_idx] = round(player.peak_payoff_location + random.random() * TREMBLING - TREMBLING/2, 2)
             if player.player_previous_strategy != player.player_strategy:
                 player.move = 1
                 player.remaining_freeze_period = int(C.FREEZE_PERIOD[player.round_number-1]) 
@@ -547,6 +549,7 @@ class MyPage(Page):
                 player=player,
                 group=player.group,
                 player_id_index=player.player_id_index, # add dat to export table
+                str_strategies=player.str_strategies,
                 strategy=player.player_strategy,
                 strategy_payoff=strategies_payoffs[player.player_id_index],
                 multiplier_strategy_payoff=multiplier_strategies_payoffs[player.player_id_index],
@@ -723,7 +726,22 @@ page_sequence = [Introduction, WaitToStart, MyPage, Results, Payment]
 def custom_export(players):
     # Export an ExtraModel called "Trial"
 
-    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho','freeze_period','num_of_bots', 'move_percent', 'trembling', 'multiplier','initialization_code','game_type', 'participant','participant_label', 'round_number', 'id_in_group', 'player_id_index','seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now']
+    # yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho','freeze_period','num_of_bots', 'move_percent', 'trembling', 'multiplier','initialization_code','game_type', 'participant','participant_label', 'round_number', 'id_in_group', 'player_id_index','seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now']
+
+    # # 'filter' without any args returns everything
+    # adjustments = Adjustment.filter()
+    # for adj in adjustments:
+    #     player = adj.player
+    #     participant = player.participant
+    #     session = player.session
+    #     yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), 
+    #            float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
+    #            float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]),int(C.FREEZE_PERIOD[player.round_number-1]), 
+    #            int(C.NUM_OF_BOTS[player.round_number-1]),float(C.MOVE_PERCENT[player.round_number-1]), float(C.TREMBLING[player.round_number-1]),
+    #            float(C.MULTIPLIER[player.round_number-1]), int(C.INITIALIZATION[player.round_number-1]), str(C.GAME_TYPE[player.round_number-1]),
+    #            participant.code, participant.label, player.round_number, player.id_in_group,player.player_id_index, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now]
+  
+    yield ['session','participant','participant_label', 'round_number', 'id_in_group', 'player_id_index','seconds','group_strategies', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -731,10 +749,6 @@ def custom_export(players):
         player = adj.player
         participant = player.participant
         session = player.session
-        yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), 
-               float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
-               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]),int(C.FREEZE_PERIOD[player.round_number-1]), 
-               int(C.NUM_OF_BOTS[player.round_number-1]),float(C.MOVE_PERCENT[player.round_number-1]), float(C.TREMBLING[player.round_number-1]),
-               float(C.MULTIPLIER[player.round_number-1]), int(C.INITIALIZATION[player.round_number-1]), str(C.GAME_TYPE[player.round_number-1]),
-               participant.code, participant.label, player.round_number, player.id_in_group,player.player_id_index, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now]
+        yield [session.code, 
+               participant.code, participant.label, player.round_number, player.id_in_group,player.player_id_index, adj.seconds, adj.str_strategies, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now]
   
