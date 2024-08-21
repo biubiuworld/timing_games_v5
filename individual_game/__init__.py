@@ -516,6 +516,7 @@ class MyPage(Page):
                 player.move = 1
                 player.remaining_freeze_period = int(C.FREEZE_PERIOD[player.round_number-1]) 
             elif player.player_previous_strategy == player.player_strategy:
+                player.move = 0
                 if player.remaining_freeze_period > 0:
                     player.remaining_freeze_period -= 1
 
