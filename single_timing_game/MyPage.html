@@ -105,16 +105,16 @@ Round {{ round_number }}
 
 {{ block content }}
 
-<p>Click on the landscape to adjust your position in real time. Time remaining <span id="time-left" style="color:blue"></span> seconds.
+<p>Use the slider to adjust your position in real time. Time remaining <span id="time-left" style="color:blue"></span> seconds.
   <br> 
- Time until next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px;"></progress></span></p>
+ Time until next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px;"></progress></span><span id="freeze_label" style="color:green;"><b>You are able to move the slider</b></span></p>
 {{ include_sibling 'landscape.html' }}
 <div>{{ include_sibling 'chart.html' }}</div>
 <div>{{ include_sibling 'payoff.html' }}</div>
 
 
-<!-- <div class="slidecontainer"><input type="range" min="{{ xmin }}" max="{{ xmax }}" step="0.01" class="slider"
-  oninput="updateSlider(this)" id="slider"></div> -->
+<div class="slidecontainer"><input type="range" min="{{ xmin }}" max="{{ xmax }}" step="0.01" class="slider"
+  oninput="updateSlider(this)" id="slider"></div>
 
     <div class="container-box">
       <button type="button" id="btn1">-</button>
@@ -131,7 +131,7 @@ Round {{ round_number }}
   let subperiod = js_vars.subperiod;
   let subperiodThousand = subperiod*1000;
   // let sliderValue = 0;
-  // var slider = document.getElementById('slider')
+  var slider = document.getElementById('slider')
 
   var numbers = document.getElementById('statistics')
       var btn1 = document.getElementById('btn1')
@@ -145,7 +145,7 @@ Round {{ round_number }}
     redrawPayoffChart(js_vars.highcharts_payoff_series, js_vars.avg_payoff_history);
     numbers.value = js_vars.highcharts_landscape_series[0][js_vars.my_id-1][0];
     numbers.innerHTML = numbers.value;
-    // slider.value = numbers.value;
+    slider.value = numbers.value;
 
 
       btn1.addEventListener('click', function () {
@@ -154,7 +154,7 @@ Round {{ round_number }}
           num = parseFloat(num - 0.01).toFixed(2) - 0
           numbers.innerHTML = num
           numbers.value = num
-          // slider.value = num
+          slider.value = num
           liveSend({ 'slider': numbers.value });
         }
       })
@@ -166,7 +166,7 @@ Round {{ round_number }}
    
         numbers.innerHTML = num
         numbers.value = num
-        // slider.value = num
+        slider.value = num
         liveSend({ 'slider': numbers.value });
       })
     
@@ -204,22 +204,22 @@ Round {{ round_number }}
       if(data.if_freeze_for_all[js_vars.my_id-1]==1){
         numbers.innerHTML = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
         numbers.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-        // slider.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+        slider.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
         btn1.disabled = true;
         btn2.disabled = true;
-        // slider.disabled = true;
+        slider.disabled = true;
         freeze = true;
         document.getElementById('freeze_label').style.fontWeight = '900';
         document.getElementById('freeze_label').style.color = 'blue';
-        // document.getElementById('freeze_label').innerHTML = 'You are frozen now';
+        document.getElementById('freeze_label').innerHTML = 'You are frozen now';
       }else if(data.if_freeze_for_all[js_vars.my_id-1]==0){
         btn1.disabled = false;
         btn2.disabled = false;
-        // slider.disabled = false;
+        slider.disabled = false;
         freeze = false;
         document.getElementById('freeze_label').style.fontWeight = '900';
         document.getElementById('freeze_label').style.color = 'green';
-        // document.getElementById('freeze_label').innerHTML = 'You are able to adjust your position';
+        document.getElementById('freeze_label').innerHTML = 'You are able to move the slider';
       }
 
   } else if ('single_coordinate' in data) {
@@ -233,33 +233,23 @@ Round {{ round_number }}
 //     console.log(highchartsLandscapeSeries);
 // }, 100);
 
-function handleLandscapeClick(xValue) {
-      // console.log(slider.value);
-    numbers.innerHTML = xValue;
-    numbers.value = xValue;
-    num=xValue;
-    // sliderValue = slider.value;
-    liveSend({ 'slider': xValue });
-    // Process the x value as needed
-    // console.log(`Clicked Landscape at x: ${xValue}`);
-    // You can implement further actions based on the xValue here
-}
+ 
 
 
   // function getCurrentSliderValueCoordinate(coordinate) {
   //   return coordinate[0] == sliderValue;
   // }
 
-  // function updateSlider(slider) {
-  //   // console.log(slider.value);
-  //   numbers.innerHTML = slider.value;
-  //   numbers.value = slider.value;
-  //   num=slider.value;
-  //   // sliderValue = slider.value;
-  //   liveSend({ 'slider': numbers.value });
-  //   // currentValue = highcharts_landscape_series.find(getCurrentSliderValueCoordinate);
-  //   // redrawLandscapeChartwithCurrentSliderValue(currentValue,highcharts_landscape_series);
-  // }
+  function updateSlider(slider) {
+    // console.log(slider.value);
+    numbers.innerHTML = slider.value;
+    numbers.value = slider.value;
+    num=slider.value;
+    // sliderValue = slider.value;
+    liveSend({ 'slider': numbers.value });
+    // currentValue = highcharts_landscape_series.find(getCurrentSliderValueCoordinate);
+    // redrawLandscapeChartwithCurrentSliderValue(currentValue,highcharts_landscape_series);
+  }
 
   setInterval(function () {
     if((freeze==false)&&(progress.value!=0)){

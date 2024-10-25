@@ -13,7 +13,7 @@
         let series = [];
         for (let i=0; i<other_positions.length; i++){
             dict = {type: 'scatter',
-                    name: "Other Player's Position",
+                    name: 'Other Strategies',
                     data: [other_positions[i]],
                     opacity: 0.5,
                     showInLegend: false,
@@ -27,7 +27,7 @@
             series.push(dict);
         }
         let dict_my = {type: 'scatter',
-                    name: 'Your Position',
+                    name: 'My Position',
                     data: [highcharts_landscape_series[0][js_vars.my_id-1]],
                     opacity: 0.9,
                     color: '#228B22',
@@ -37,55 +37,27 @@
                         lineColor: null,
                         symbol: 'diamond',
                         radius: 8
-                },
-                dataLabels: {
-                enabled: true, // Enable data labels
-                format: 'Your Position: {point.x}', // Format to show the y value
-                verticalAlign: 'bottom', // Position the label above the point
-                style: {
-                    color: 'green', // Text color
-                    textOutline: 'none' // Remove outline for clarity
-                },
-                // Optionally customize x and y offsets to position the label
-                x: 0, // Adjust horizontal position (0 means directly above the point)
-                y: -10 // Adjust vertical position (negative value moves it up)
-                    }
-            
-            
-            };
+                },};
         let dict_lanscape = {
                 type: 'line',
                 name: 'Landscape',
                 data: highcharts_landscape_series[1],
                 color: 'blue',
-                lineWidth: 3, // Set the desired line width here
                 marker: {
                     enabled: false
                 },
-                // states: {
-                //     hover: {
-                //         lineWidth: 0
-                //     }
-                // },
-                enableMouseTracking: true,
-                // Add click event for the landscape line
-                point: {
-                    events: {
-                click: function () {
-                    // Call a function to handle the x value
-                    handleLandscapeClick(this.x);
-                }
-            }
-        }
-
-
+                states: {
+                    hover: {
+                        lineWidth: 0
+                    }
+                },
+                enableMouseTracking: true
             };
         series.push(dict_my, dict_lanscape);        
 
         Highcharts.chart('landscape', {
             chart: {
-                 height: 500,
-                 width: 700
+                 height: 420,
                         },
 
             title: {
@@ -107,34 +79,55 @@
                 max: js_vars.xmax
             },
 
-            tooltip: {
-                useHTML: true, // Allow HTML formatting
-                backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent background
-                style: {
-                    opacity: 0.6, // Set tooltip opacity
-                    color: '#000', // Text color
-                    padding: '10px' // Padding around the text
-                },
-                formatter: function() {
-                    return `
-                        <strong>${this.series.name}</strong><br>
-                        Position: ${this.x}<br>
-                        Payoff: ${this.y}
-                    `;
-                }
-            },
             plotOptions: {
                 series: {
                     
-                    animation: false,
-                    states: {
-                    inactive: {
-                        opacity: 1 // Keep the opacity at 1 to avoid dimming
-                    }
-                }
+                    animation: false
                 },
 
             },
+
+            // series: [{
+            //     type: 'line',
+            //     name: 'Landscape',
+            //     data: highcharts_landscape_series[1],
+            //     marker: {
+            //         enabled: false
+            //     },
+            //     states: {
+            //         hover: {
+            //             lineWidth: 0
+            //         }
+            //     },
+            //     enableMouseTracking: true
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Other Positions',
+            //     data: other_positions,
+            //     color: '#6B8E23',
+            //     opacity: 0.8,
+            //     marker: {
+            //         lineWidth: 2,
+            //         fillColor: '#FFFFFF',
+            //         lineColor: null,
+            //         symbol: 'circle',
+            //         radius: 6
+            //     },
+
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Your Position',
+            //     data: [highcharts_landscape_series[0][js_vars.my_id-1]],
+            //     color: '#ff0000',
+            //     opacity: 0.8,
+            //     marker: {
+            //         lineWidth: 2,
+            //         fillColor: '#FFFFFF',
+            //         lineColor: null,
+            //         symbol: 'circle',
+            //         radius: 6
+            //     }
+            // }],
             series: series,
 
             credits: {
@@ -142,10 +135,8 @@
             }
 
         });
-
     }
 
- 
     function redrawLandscapeChartwithCurrentSliderValue(currentValue,highcharts_landscape_series) {
         // const other_positions = highcharts_landscape_series[0].slice();
         // other_positions.splice(js_vars.my_id-1,1);
@@ -154,7 +145,6 @@
         let series = [];
         for (let i=0; i<other_positions.length; i++){
             dict = {type: 'scatter',
-                    name: "Other Player's Position",
                     data: [other_positions[i]],
                     opacity: 0.5,
                     showInLegend: false,
@@ -169,7 +159,7 @@
             // console.log(other_positions[i])
         }
         let dict_my = {type: 'scatter',
-                    name: 'Your Position',
+                    name: 'My Position',
                     data: [highcharts_landscape_series[0][js_vars.my_id-1]],
                     opacity: 0.9,
                     color: '#228B22',
@@ -179,77 +169,36 @@
                         lineColor: null,
                         symbol: 'diamond',
                         radius: 8
-                },
-                dataLabels: {
-                enabled: true, // Enable data labels
-                format: 'Your Position: {point.x}', // Format to show the y value
-                verticalAlign: 'bottom', // Position the label above the point
-                style: {
-                    color: 'green', // Text color
-                    textOutline: 'none' // Remove outline for clarity
-                },
-                // Optionally customize x and y offsets to position the label
-                x: 0, // Adjust horizontal position (0 means directly above the point)
-                y: -10 // Adjust vertical position (negative value moves it up)
-                    }
-            
-            };
+                },};
         let dict_lanscape = {
                 type: 'line',
                 name: 'Landscape',
                 data: highcharts_landscape_series[1],
                 color: 'blue',
-                lineWidth: 3, // Set the desired line width here
                 marker: {
                     enabled: false
                 },
-                // states: {
-                //     hover: {
-                //         lineWidth: 0
-                //     }
-                // },
-                enableMouseTracking: true,
-                 // Add click event for the landscape line
-                 point: {
-                    events: {
-                click: function () {
-                    // Call a function to handle the x value
-                    handleLandscapeClick(this.x);
-                }
-            }
-        }
+                states: {
+                    hover: {
+                        lineWidth: 0
+                    }
+                },
+                enableMouseTracking: true
             };
             let dict_currentValue = {
                 type: 'scatter',
-                name: 'Your Current Position',
+                name: 'Current Position',
                 data: currentValue,
                 color: '#800080',
                 marker: {
-                    radius: 6,
-                    fillColor: 'white', // Inside fill color
-                    lineColor: 'red',   // Circle border color
-                    lineWidth: 2,       // Border thickness
-                    symbol: 'circle'    // Use circle shape
-                },
-                dataLabels: {
-                enabled: true, // Enable data labels
-                format: 'Your Current Position: {point.x}', // Format to show the y value
-                verticalAlign: 'top', // Position the label above the point
-                style: {
-                    color: 'red', // Text color
-                    textOutline: 'none' // Remove outline for clarity
-                },
-                // Optionally customize x and y offsets to position the label
-                x: 0, // Adjust horizontal position (0 means directly above the point)
-                y: 10 // Adjust vertical position (negative value moves it up)
-                    },
-
+                    symbol: 'triangle',
+                    radius: 6
+                }
             };
         series.push(dict_my, dict_lanscape, dict_currentValue);  
         Highcharts.chart('landscape', {
             chart: {
-                height: 500,
-                 width: 700
+                 height: 420,
                         },
 
             title: {
@@ -270,32 +219,11 @@
                 min: js_vars.xmin,
                 max: js_vars.xmax
             },
-            tooltip: {
-                useHTML: true, // Allow HTML formatting
-                backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent background
-                style: {
-                    opacity: 0.6, // Set tooltip opacity
-                    color: '#000', // Text color
-                    padding: '10px' // Padding around the text
-                },
-                formatter: function() {
-                    return `
-                        <strong>${this.series.name}</strong><br>
-                        Position: ${this.x}<br>
-                        Payoff: ${this.y}
-                    `;
-                }
-            },
             
             plotOptions: {
                 series: {
                     
-                    animation: false,
-                    states: {
-                    inactive: {
-                        opacity: 1 // Keep the opacity at 1 to avoid dimming
-                    }
-                }
+                    animation: false
                 },
 
             },

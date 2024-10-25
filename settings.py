@@ -1,18 +1,18 @@
 from os import environ
 
 SESSION_CONFIGS = [
-    # dict(
-    #     name='timing_game',
-    #     display_name="Timing Games",
-    #     app_sequence=['timing_game'],
-    #     num_demo_participants=3,
-    # ),
-        dict(
-        name='individual_game',
+    dict(
+        name='timing_game',
         display_name="Timing Games",
-        app_sequence=['individual_game'],
-        num_demo_participants=1,
+        app_sequence=['timing_game'],
+        num_demo_participants=3,
     ),
+    #     dict(
+    #     name='individual_game',
+    #     display_name="Timing Games",
+    #     app_sequence=['individual_game'],
+    #     num_demo_participants=2,
+    # ),
     # dict(
     #     name='pilot_part1',
     #     display_name="Timing Games p1",
