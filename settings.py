@@ -5,7 +5,7 @@ SESSION_CONFIGS = [
         name='timing_game',
         display_name="Timing Games",
         app_sequence=['timing_game'],
-        num_demo_participants=3,
+        num_demo_participants=5,
     ),
     #     dict(
     #     name='individual_game',

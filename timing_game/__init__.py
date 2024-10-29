@@ -110,6 +110,7 @@ def generate_initial_strategies(group, num_of_players):
             cdfmax = lam
             cdfx = np.round(np.arange(cdfmin, cdfmax, 0.01), 2)
             cdfy = gam - rho + np.sqrt((gam + rho) ** 2 - 4 * ((1 + rho) * (gam - 1) * (1 + lam ** 2))/(1 + 2 * lam * cdfx - cdfx ** 2))
+            cdfy = np.nan_to_num(cdfy) #convert nan to 0
             y_ind = 0
             cdfy = cdfy/2
             for i in range(num_of_players):
@@ -126,13 +127,13 @@ def generate_initial_strategies(group, num_of_players):
                         strategies.append(cdfx[len(cdfy)])
                     else:
                         strategies.append(cdfx[y_ind])
-
-
+        
         elif game_type == 'greed':
             cdfmin = lam
             cdfmax = lam + math.sqrt(1+lam**2)/(math.sqrt(1+16*rho*gam/((3*gam-3*rho-2)*(gam-rho+2))))
             cdfx = np.round(np.arange(cdfmin, cdfmax, 0.01), 2)
             cdfy = gam - rho - np.sqrt((gam + rho) ** 2 - 4 * gam * rho * (1 + lam ** 2) / (1 + 2 * lam * cdfx - cdfx ** 2))
+            cdfy = np.nan_to_num(cdfy) #convert nan to 0
             y_ind = len(cdfy) - 1
             cdfy = cdfy / 2            
 
