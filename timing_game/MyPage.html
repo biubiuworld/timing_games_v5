@@ -113,15 +113,6 @@ Round {{ round_number }}
 <div>{{ include_sibling 'payoff.html' }}</div>
 
 
-<!-- <div class="slidecontainer"><input type="range" min="{{ xmin }}" max="{{ xmax }}" step="0.01" class="slider"
-  oninput="updateSlider(this)" id="slider"></div> -->
-
-    <div class="container-box">
-      <button type="button" id="btn1">-</button>
-      <span id="statistics">10</span>
-      <button type="button" id="btn2">+</button>
-    </div>
-
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/series-label.js"></script>
 
@@ -130,160 +121,72 @@ Round {{ round_number }}
   let progress=document.getElementsByTagName('progress')[0];
   let subperiod = js_vars.subperiod;
   let subperiodThousand = subperiod*1000;
-  // let sliderValue = 0;
-  // var slider = document.getElementById('slider')
 
-  var numbers = document.getElementById('statistics')
-      var btn1 = document.getElementById('btn1')
-      var btn2 = document.getElementById('btn2')
-      // console.log(btn1)
-      var num = 10.00
+  var num = 10.00
 
     //initiate the plot when open the page
     redrawLandscapeChart(js_vars.highcharts_landscape_series);
     redrawStrategiesChart(js_vars.highcharts_series);
     redrawPayoffChart(js_vars.highcharts_payoff_series, js_vars.avg_payoff_history);
-    numbers.value = js_vars.highcharts_landscape_series[0][js_vars.my_id-1][0];
-    numbers.innerHTML = numbers.value;
-    // slider.value = numbers.value;
+    num = js_vars.highcharts_landscape_series[0][js_vars.my_id-1][0];
 
-
-      btn1.addEventListener('click', function () {
-        if (numbers.innerHTML != 0) {
-          num = numbers.value;
-          num = parseFloat(num - 0.01).toFixed(2) - 0
-          numbers.innerHTML = num
-          numbers.value = num
-          // slider.value = num
-          liveSend({ 'slider': numbers.value });
-        }
-      })
-      btn2.addEventListener('click', function () {
-        // num += 0.01
-        // numbers.innerHTML = num
-        num = numbers.value;
-        num = parseFloat(num + 0.01).toFixed(2) - 0
-   
-        numbers.innerHTML = num
-        numbers.value = num
-        // slider.value = num
-        liveSend({ 'slider': numbers.value });
-      })
-    
-      
-
-  timing()
-  function timing() {
-    setInterval(() => {
-      liveSend({ 'strategy': numbers.value });
-    }, subperiodThousand);
-  }
-
+      var highcharts_landscape_series = js_vars.highcharts_landscape_series;
+      var highcharts_series = js_vars.highcharts_series;
+      var highcharts_payoff_series = js_vars.highcharts_payoff_series;
+      var avg_payoff_history = js_vars.avg_payoff_history;
  
-  var highchartsLandscapeSeries=[];
 
   let freeze = false; 
 
   function liveRecv(data) {
     //console.log(data)
     if ('highcharts_series' in data) {
+      highcharts_landscape_series = data.highcharts_landscape_series;
+      highcharts_series = data.highcharts_series;
+      highcharts_payoff_series = data.highcharts_payoff_series;
+      avg_payoff_history = data.avg_payoff_history;
       redrawLandscapeChart(data.highcharts_landscape_series);
       redrawStrategiesChart(data.highcharts_series);
-      //console.log(data.highcharts_landscape_series);
       redrawPayoffChart(data.highcharts_payoff_series, data.avg_payoff_history);
-      // numbers.innerHTML = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-      // numbers.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-      // slider.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-      // secondsSinceChange = 3;
-      // if(js_vars.subperiod<1){
-      //   progress.value=js_vars.subperiod-0.2;
-      // } else {
-      //   progress.value=js_vars.subperiod;
-      // }
       progress.value=js_vars.subperiod;
       if(data.if_freeze_for_all[js_vars.my_id-1]==1){
-        numbers.innerHTML = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-        numbers.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-        // slider.value = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-        btn1.disabled = true;
-        btn2.disabled = true;
-        // slider.disabled = true;
+        num = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
         freeze = true;
-        document.getElementById('freeze_label').style.fontWeight = '900';
-        document.getElementById('freeze_label').style.color = 'blue';
-        // document.getElementById('freeze_label').innerHTML = 'You are frozen now';
       }else if(data.if_freeze_for_all[js_vars.my_id-1]==0){
-        btn1.disabled = false;
-        btn2.disabled = false;
-        // slider.disabled = false;
         freeze = false;
-        document.getElementById('freeze_label').style.fontWeight = '900';
-        document.getElementById('freeze_label').style.color = 'green';
-        // document.getElementById('freeze_label').innerHTML = 'You are able to adjust your position';
       }
-
-  } else if ('single_coordinate' in data) {
-    if(data.if_freeze_for_all[js_vars.my_id-1]==0){
-      redrawLandscapeChartwithCurrentSliderValue(data.single_coordinate, data.highcharts_landscape_series);
-    }
-  }
+  } 
     }
 
-//   setTimeout(function(){
-//     console.log(highchartsLandscapeSeries);
-// }, 100);
 
 function handleLandscapeClick(xValue) {
-      // console.log(slider.value);
-    numbers.innerHTML = xValue;
-    numbers.value = xValue;
     num=xValue;
-    // sliderValue = slider.value;
-    liveSend({ 'slider': xValue });
-    // Process the x value as needed
-    // console.log(`Clicked Landscape at x: ${xValue}`);
-    // You can implement further actions based on the xValue here
+    // Find the element where x[0] == 1
+    const single_coordinate = highcharts_landscape_series[1].find(x => x[0] === xValue);
+    // console.log(single_coordinate);
+    redrawLandscapeChartwithCurrentSliderValue([single_coordinate], highcharts_landscape_series);
 }
 
-
-  // function getCurrentSliderValueCoordinate(coordinate) {
-  //   return coordinate[0] == sliderValue;
-  // }
-
-  // function updateSlider(slider) {
-  //   // console.log(slider.value);
-  //   numbers.innerHTML = slider.value;
-  //   numbers.value = slider.value;
-  //   num=slider.value;
-  //   // sliderValue = slider.value;
-  //   liveSend({ 'slider': numbers.value });
-  //   // currentValue = highcharts_landscape_series.find(getCurrentSliderValueCoordinate);
-  //   // redrawLandscapeChartwithCurrentSliderValue(currentValue,highcharts_landscape_series);
-  // }
 
   setInterval(function () {
     if((freeze==false)&&(progress.value!=0)){
       progress.value=progress.value-0.5;
     }
-    // document.getElementById('secondsSinceChange').innerHTML = secondsSinceChange;
   }, 500);
 
- 
+
+  timing()
+  function timing() {
+    setInterval(() => {
+      liveSend({ 'strategy': num });
+    }, subperiodThousand);
+  }
 
 //sends an empty message to the server when the page loads
   document.addEventListener('DOMContentLoaded', (event) => {
     liveSend({});
   });
 
-  // document.addEventListener('DOMContentLoaded', (event) => {
-  //   redrawLandscapeChart(js_vars.highcharts_landscape_series);
-  //   redrawStrategiesChart(js_vars.highcharts_series);
-  //   redrawPayoffChart(js_vars.highcharts_payoff_series, js_vars.avg_payoff_history);
-  //   numbers.value = js_vars.highcharts_landscape_series[0][js_vars.my_id-1][0];
-  //   numbers.innerHTML = numbers.value;
-  //   slider.value = numbers.value;
-  //   });
-  
 
   let customTimerEle = document.getElementById('time-left');
   document.addEventListener("DOMContentLoaded", function (event) {

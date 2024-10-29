@@ -84,7 +84,7 @@
 
         Highcharts.chart('landscape', {
             chart: {
-                 height: 500,
+                 height: 550,
                 //  width: 700
                         },
 
@@ -145,8 +145,10 @@
 
     }
 
+
  
     function redrawLandscapeChartwithCurrentSliderValue(currentValue,highcharts_landscape_series) {
+        console.log(currentValue);
         // const other_positions = highcharts_landscape_series[0].slice();
         // other_positions.splice(js_vars.my_id-1,1);
         const other_positions = highcharts_landscape_series[0].slice();
@@ -248,7 +250,7 @@
         series.push(dict_my, dict_lanscape, dict_currentValue);  
         Highcharts.chart('landscape', {
             chart: {
-                height: 500,
+                height: 550,
                 //  width: 700
                         },
 
