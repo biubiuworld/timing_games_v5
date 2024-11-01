@@ -48,7 +48,7 @@
                 },
                 // Optionally customize x and y offsets to position the label
                 x: 0, // Adjust horizontal position (0 means directly above the point)
-                y: -20 // Adjust vertical position (negative value moves it up)
+                y: -30 // Adjust vertical position (negative value moves it up)
                     }
             
             
@@ -192,7 +192,7 @@
                 },
                 // Optionally customize x and y offsets to position the label
                 x: 0, // Adjust horizontal position (0 means directly above the point)
-                y: -20 // Adjust vertical position (negative value moves it up)
+                y: -30 // Adjust vertical position (negative value moves it up)
                     }
             
             };
@@ -223,7 +223,7 @@
             };
             let dict_currentValue = {
                 type: 'scatter',
-                name: 'Your Current Position',
+                name: 'Your Position in next period',
                 data: currentValue,
                 color: '#800080',
                 marker: {
@@ -235,7 +235,7 @@
                 },
                 dataLabels: {
                 enabled: true, // Enable data labels
-                format: 'Your Current Position: {point.x}', // Format to show the y value
+                format: 'Your New Position will be: {point.x}', // Format to show the y value
                 verticalAlign: 'top', // Position the label above the point
                 style: {
                     color: 'red', // Text color
@@ -243,7 +243,7 @@
                 },
                 // Optionally customize x and y offsets to position the label
                 x: 0, // Adjust horizontal position (0 means directly above the point)
-                y: 20 // Adjust vertical position (negative value moves it up)
+                y: 30 // Adjust vertical position (negative value moves it up)
                     },
 
             };

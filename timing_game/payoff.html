@@ -9,7 +9,7 @@
 <script>
     function redrawPayoffChart(highcharts_payoff_series, avg_payoff_history) {
         let dict_my = {type: 'area',
-                    name: 'My Payoff',
+                    name: 'Your Payoff',
                     data: highcharts_payoff_series[js_vars.my_id-1],
                     opacity: 0.4,
                     color: '#228B22',
@@ -33,7 +33,7 @@
                         fillColor: '#FFFFFF',
                         lineColor: null,
                         symbol: 'circle',
-                        radius: 3
+                        radius: 2
                     },
                     }; 
         let series = [];
@@ -52,6 +52,7 @@
                 },
                 min: js_vars.ymin,
                 max: js_vars.ymax,
+                tickInterval: 5,
             },
 
             xAxis: {
