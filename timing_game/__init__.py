@@ -43,11 +43,11 @@ class C(BaseConstants):
     GAME_TYPE = read_csv('GAME_TYPE')
     LOWER_BOUND = read_csv('LOWER_BOUND')
     EXCHANGE_RATE = 180
-    SHOWUP = 7
-    THRESHOLD =500
+    SHOWUP = 6
+    THRESHOLD =1000
     PRACTICE_ROUND_NUM = 2
     SELECT_LOW_BOUND = 12
-    SELECT_HIGH_BOUND = 28
+    SELECT_HIGH_BOUND = 20
 
 class Subsession(BaseSubsession):
     pass
@@ -84,9 +84,9 @@ class Adjustment(ExtraModel):
     multiplier_strategy_payoff = models.FloatField()
     seconds = models.FloatField(doc="Timestamp (seconds since beginning of trading)")
     move = models.BooleanField()
-    remaining_freeze = models.IntegerField()
-    if_freeze_next = models.BooleanField()
-    if_freeze_now = models.BooleanField()
+    # remaining_freeze = models.IntegerField()
+    # if_freeze_next = models.BooleanField()
+    # if_freeze_now = models.BooleanField()
 
 
 #Functions
@@ -334,9 +334,9 @@ class WaitToStart(WaitPage):
                     multiplier_strategy_payoff=multiplier_strategies_payoffs[p.id_in_group-1],
                     seconds=0,
                     move=0,
-                    remaining_freeze=0,
-                    if_freeze_next=0,
-                    if_freeze_now=0,
+                    # remaining_freeze=0,
+                    # if_freeze_next=0,
+                    # if_freeze_now=0,
                 )
 
 
@@ -463,9 +463,9 @@ class MyPage(Page):
                         multiplier_strategy_payoff=multiplier_strategies_payoffs[p.id_in_group-1],
                         seconds=now_seconds,
                         move=move_for_all[p.id_in_group-1],
-                        remaining_freeze=session.remaining_freeze_period_for_all[p.id_in_group-1],
-                        if_freeze_next=session.if_freeze_next[p.id_in_group-1],
-                        if_freeze_now=session.if_freeze_now[p.id_in_group-1],
+                        # remaining_freeze=session.remaining_freeze_period_for_all[p.id_in_group-1],
+                        # if_freeze_next=session.if_freeze_next[p.id_in_group-1],
+                        # if_freeze_now=session.if_freeze_now[p.id_in_group-1],
                     )
             
                 session.highcharts_landscape_series = []
@@ -590,7 +590,8 @@ page_sequence = [Introduction, WaitToStart, MyPage, ResultsWaitPage, Results, Pa
 def custom_export(players):
     # Export an ExtraModel called "Trial"
 
-    yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho','freeze_period', 'multiplier','initialization_code','game_type', 'participant','participant_label', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now']
+    # yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho','freeze_period', 'multiplier','initialization_code','game_type', 'participant','participant_label', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now']
+    yield ['session','subperiod', 'period_length', 'xmax','xmin', 'lambda','gamma','rho', 'multiplier','game_type', 'participant','participant_label', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -598,8 +599,13 @@ def custom_export(players):
         player = adj.player
         participant = player.participant
         session = player.session
+        # yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), 
+        #        float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
+        #        float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]),int(C.FREEZE_PERIOD[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), int(C.INITIALIZATION[player.round_number-1]), str(C.GAME_TYPE[player.round_number-1]),
+        #        participant.code, participant.label, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now]
+  
         yield [session.code, float(C.SUBPERIOD[player.round_number-1]), int(C.PERIOD_LENGTH[player.round_number-1]), 
-               float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), float(C.YMAX[player.round_number-1]), float(C.YMIN[player.round_number-1]), 
-               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]),int(C.FREEZE_PERIOD[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), int(C.INITIALIZATION[player.round_number-1]), str(C.GAME_TYPE[player.round_number-1]),
-               participant.code, participant.label, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move, adj.remaining_freeze, adj.if_freeze_next, adj.if_freeze_now]
+               float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), 
+               float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), str(C.GAME_TYPE[player.round_number-1]),
+               participant.code, participant.label, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move]
   
