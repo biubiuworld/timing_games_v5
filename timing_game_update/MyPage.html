@@ -1,0 +1,202 @@
+{{ block styles}}
+<style>
+   .otree-timer {
+        display: none;
+    }
+
+  .slidecontainer {
+    width: 55%;
+    height: 100%;
+    float: left;
+  }
+
+  .slidecontainer input {
+    width: 100%;
+    margin-left: 50px;
+    float: left;
+  }
+
+  /* .landscape {
+    height: 793px;
+  } */
+  #landscape .highcharts-container {
+    /* height: 600px !important; */
+  }
+
+  #highchart .highcharts-container {
+    /* height: 260px !important; */
+  }
+
+  #payoff .highcharts-container {
+    /* height: 260px !important; */
+  }
+
+  .slider {
+    -webkit-appearance: none;
+    width: 55%;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+  }
+
+  .slider:hover {
+    opacity: 1;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #228B22;
+    cursor: pointer;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #228B22;
+    cursor: pointer;
+  }
+
+  /* .box-content {
+    display:flex;
+    height:800px;
+    border: 1px solid red;
+  } */
+  * {
+        font-family: sans-serif;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      .container-box {
+        width: 15%;
+        height: 50px;
+        /* border: 1px solid #000; */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-left: 250px;
+      }
+      .container-box button {
+        padding: 10px;
+        font-size: 20px;
+        border: none;
+      }
+      progress{
+        vertical-align: -10px;
+      }
+
+</style>
+{{ endblock }}
+
+
+{{ block title }}
+{{ if player.round_number <= practice_round_num }}
+    Practice Round {{ round_number }}
+{{ else }}
+Round {{ round_number }}
+{{ endif }}
+{{ endblock }}
+
+{{ block content }}
+
+<p>Click on the landscape to adjust your position in real time. Time remaining <span id="time-left" style="color:blue"></span> seconds.
+  <br> The landscape updates every <b>{{ subperiod }}</b> seconds.
+ Time until next change: <span id="secondsSinceChange"><progress value="{{ subperiod }}" max="{{ subperiod }}" style="width: 20%; height: 30px;"></progress></span></p>
+{{ include_sibling 'landscape.html' }}
+<div>{{ include_sibling 'chart.html' }}</div>
+<div>{{ include_sibling 'payoff.html' }}</div>
+
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/series-label.js"></script>
+
+<script>
+
+  let progress=document.getElementsByTagName('progress')[0];
+  let subperiod = js_vars.subperiod;
+  let subperiodThousand = subperiod*1000;
+
+  var num = 10.00
+
+    //initiate the plot when open the page
+    redrawLandscapeChart(js_vars.highcharts_landscape_series);
+    redrawStrategiesChart(js_vars.highcharts_series);
+    redrawPayoffChart(js_vars.highcharts_payoff_series, js_vars.avg_payoff_history);
+    num = js_vars.highcharts_landscape_series[0][js_vars.my_id-1][0];
+
+      var highcharts_landscape_series = js_vars.highcharts_landscape_series;
+      var highcharts_series = js_vars.highcharts_series;
+      var highcharts_payoff_series = js_vars.highcharts_payoff_series;
+      var avg_payoff_history = js_vars.avg_payoff_history;
+ 
+
+  let freeze = false; 
+
+  function liveRecv(data) {
+    //console.log(data)
+    if ('highcharts_series' in data) {
+      highcharts_landscape_series = data.highcharts_landscape_series;
+      highcharts_series = data.highcharts_series;
+      highcharts_payoff_series = data.highcharts_payoff_series;
+      avg_payoff_history = data.avg_payoff_history;
+      redrawLandscapeChart(data.highcharts_landscape_series);
+      redrawStrategiesChart(data.highcharts_series);
+      redrawPayoffChart(data.highcharts_payoff_series, data.avg_payoff_history);
+      progress.value=js_vars.subperiod;
+      if(data.if_freeze_for_all[js_vars.my_id-1]==1){
+        num = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+        freeze = true;
+      }else if(data.if_freeze_for_all[js_vars.my_id-1]==0){
+        freeze = false;
+      }
+  } 
+    }
+
+
+function handleLandscapeClick(xValue) {
+    num=xValue;
+    // Find the element where x[0] == 1
+    const single_coordinate = highcharts_landscape_series[1].find(x => x[0] === xValue);
+    // console.log(single_coordinate);
+    redrawLandscapeChartwithCurrentSliderValue([single_coordinate], highcharts_landscape_series);
+}
+
+
+  setInterval(function () {
+    if((freeze==false)&&(progress.value!=0)){
+      progress.value=progress.value-0.1;
+    }
+  }, 100);
+
+
+  timing()
+  function timing() {
+    setInterval(() => {
+      liveSend({ 'strategy': num });
+    }, subperiodThousand);
+  }
+
+//sends an empty message to the server when the page loads
+  document.addEventListener('DOMContentLoaded', (event) => {
+    liveSend({});
+  });
+
+
+  let customTimerEle = document.getElementById('time-left');
+  document.addEventListener("DOMContentLoaded", function (event) {
+      $('.otree-timer__time-left').on('update.countdown', function (event) {
+                customTimerEle.innerText = event.offset.totalSeconds;
+            });
+        });
+
+</script>
+
+
+
+{{ endblock }}

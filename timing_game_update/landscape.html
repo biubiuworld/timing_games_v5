@@ -1,0 +1,424 @@
+<!-- <script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script> -->
+
+<!-- height is needed to avoid scroll to top: https://www.highcharts.com/forum/viewtopic.php?t=12731 -->
+<div id="landscape" style="float:left;width: 70%">
+
+</div>
+
+<script>
+    function redrawLandscapeChart(highcharts_landscape_series) {
+        const other_positions = highcharts_landscape_series[0].slice();
+        other_positions.splice(js_vars.my_id-1,1);
+        let series = [];
+        for (let i=0; i<other_positions.length; i++){
+            dict = {type: 'scatter',
+                    name: "Other Player's Position",
+                    data: [other_positions[i]],
+                    opacity: 0.5,
+                    showInLegend: false,
+                    marker: {
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF',
+                        lineColor: null,
+                        symbol: 'circle',
+                        radius: 6
+                },}
+            series.push(dict);
+        }
+        let dict_my = {type: 'scatter',
+                    name: 'Your Position',
+                    data: [highcharts_landscape_series[0][js_vars.my_id-1]],
+                    opacity: 0.9,
+                    color: '#228B22',
+                    marker: {
+                        lineWidth: 3,
+                        fillColor: '#228B22',
+                        lineColor: null,
+                        symbol: 'diamond',
+                        radius: 8
+                },
+                dataLabels: {
+                enabled: true, // Enable data labels
+                format: 'Your Position: {point.x}', // Format to show the y value
+                verticalAlign: 'bottom', // Position the label above the point
+                style: {
+                    color: 'green', // Text color
+                    textOutline: 'none' // Remove outline for clarity
+                },
+                // Optionally customize x and y offsets to position the label
+                x: 0, // Adjust horizontal position (0 means directly above the point)
+                y: -30 // Adjust vertical position (negative value moves it up)
+                    }
+            
+            
+            };
+        let dict_lanscape = {
+                type: 'line',
+                name: 'Landscape',
+                data: highcharts_landscape_series[1],
+                color: 'blue',
+                lineWidth: 5, // Set the desired line width here
+                marker: {
+                    enabled: false
+                },
+                // states: {
+                //     hover: {
+                //         lineWidth: 0
+                //     }
+                // },
+                enableMouseTracking: true,
+                // Add click event for the landscape line
+                point: {
+                    events: {
+                click: function () {
+                    // Call a function to handle the x value
+                    handleLandscapeClick(this.x);
+                }
+            }
+        }
+
+
+            };
+        series.push(dict_my, dict_lanscape);        
+
+        Highcharts.chart('landscape', {
+            chart: {
+                 height: 550,
+                //  width: 700
+                events: {
+                    click: function (e) {
+                        // Normalize the click with the plot coordinates
+                        var x = this.xAxis[0].toValue(e.chartX);
+
+                        // Round x to 2 decimal places
+                        var roundedX = parseFloat(x.toFixed(2));
+                        
+                        // Handle the click event by calling a function
+                        handleLandscapeClick(roundedX);
+
+            },
+            load: function () {
+                    var chart = this; // Capture the chart instance
+                    // Setup mousemove event on the chart container
+                    chart.container.addEventListener('mousemove', function (e) {
+                        var eChart = chart.pointer.normalize(e); // Normalize the mouse coordinates to chart
+                        var x = chart.xAxis[0].toValue(eChart.chartX); // Convert pixel x-coordinate to chart x-value
+                        
+                        // Update or add the vertical line on mouse move
+                        chart.xAxis[0].removePlotLine('mouse-line'); // Remove the previous line
+                        chart.xAxis[0].addPlotLine({
+                            value: x,
+                            color: 'grey',
+                            width: 2,
+                            dashStyle: 'Dash',
+                            id: 'mouse-line' // Identifier for the plot line
+                        });
+                    });
+                }
+            }
+                        },
+
+            title: {
+                text: 'Landscape'
+            },
+            yAxis: {
+                title: {
+                    text: 'Payoff'
+                },
+                min: js_vars.ymin,
+                max: js_vars.ymax
+            },
+
+            xAxis: {
+                title: {
+                    text: 'Position'
+                },
+                min: js_vars.x_scale_left, //js_vars.xmin,
+                max: js_vars.x_scale_right //js_vars.xmax
+            },
+
+            tooltip: {
+                useHTML: true, // Allow HTML formatting
+                backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent background
+                style: {
+                    opacity: 0.6, // Set tooltip opacity
+                    color: '#000', // Text color
+                    padding: '10px' // Padding around the text
+                },
+                formatter: function() {
+                    return `
+                        <strong>${this.series.name}</strong><br>
+                        Position: ${this.x}<br>
+                        Payoff: ${this.y}
+                    `;
+                }
+            },
+            plotOptions: {
+                series: {
+                    
+                    animation: false,
+                    states: {
+                    inactive: {
+                        opacity: 1 // Keep the opacity at 1 to avoid dimming
+                    }
+                }
+                },
+
+            },
+            series: series,
+
+            credits: {
+                enabled: false
+            }
+
+        });
+
+    }
+
+
+ 
+    function redrawLandscapeChartwithCurrentSliderValue(currentValue,highcharts_landscape_series) {
+        // console.log(currentValue);
+        // const other_positions = highcharts_landscape_series[0].slice();
+        // other_positions.splice(js_vars.my_id-1,1);
+        const other_positions = highcharts_landscape_series[0].slice();
+        other_positions.splice(js_vars.my_id-1,1);
+        let series = [];
+        for (let i=0; i<other_positions.length; i++){
+            dict = {type: 'scatter',
+                    name: "Other Player's Position",
+                    data: [other_positions[i]],
+                    opacity: 0.5,
+                    showInLegend: false,
+                    marker: {
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF',
+                        lineColor: null,
+                        symbol: 'circle',
+                        radius: 6
+                },}
+            series.push(dict);
+            // console.log(other_positions[i])
+        }
+        let dict_my = {type: 'scatter',
+                    name: 'Your Position',
+                    data: [highcharts_landscape_series[0][js_vars.my_id-1]],
+                    opacity: 0.9,
+                    color: '#228B22',
+                    marker: {
+                        lineWidth: 3,
+                        fillColor: '#228B22',
+                        lineColor: null,
+                        symbol: 'diamond',
+                        radius: 8
+                },
+                dataLabels: {
+                enabled: true, // Enable data labels
+                format: 'Your Position: {point.x}', // Format to show the y value
+                verticalAlign: 'bottom', // Position the label above the point
+                style: {
+                    color: 'green', // Text color
+                    textOutline: 'none' // Remove outline for clarity
+                },
+                // Optionally customize x and y offsets to position the label
+                x: 0, // Adjust horizontal position (0 means directly above the point)
+                y: -30 // Adjust vertical position (negative value moves it up)
+                    }
+            
+            };
+        let dict_lanscape = {
+                type: 'line',
+                name: 'Landscape',
+                data: highcharts_landscape_series[1],
+                color: 'blue',
+                lineWidth: 5, // Set the desired line width here
+                marker: {
+                    enabled: false
+                },
+                // states: {
+                //     hover: {
+                //         lineWidth: 0
+                //     }
+                // },
+                enableMouseTracking: true,
+                 // Add click event for the landscape line
+                 point: {
+                    events: {
+                click: function () {
+                    // Call a function to handle the x value
+                    handleLandscapeClick(this.x);
+                }
+            }
+        }
+            };
+            let dict_currentValue = {
+                type: 'scatter',
+                name: 'Your Position in next period',
+                data: currentValue,
+                color: '#800080',
+                marker: {
+                    radius: 7,
+                    fillColor: 'red', // Inside fill color
+                    lineColor: 'red',   // Circle border color
+                    lineWidth: 2,       // Border thickness
+                    symbol: 'circle'    // Use circle shape
+                },
+                dataLabels: {
+                enabled: true, // Enable data labels
+                format: 'Your New Position will be: {point.x}', // Format to show the y value
+                verticalAlign: 'top', // Position the label above the point
+                style: {
+                    color: 'red', // Text color
+                    textOutline: 'none' // Remove outline for clarity
+                },
+                // Optionally customize x and y offsets to position the label
+                x: 0, // Adjust horizontal position (0 means directly above the point)
+                y: 30 // Adjust vertical position (negative value moves it up)
+                    },
+
+            };
+        series.push(dict_my, dict_lanscape, dict_currentValue);  
+        Highcharts.chart('landscape', {
+            chart: {
+                height: 550,
+                //  width: 700
+                events: {
+                    click: function (e) {
+                        // Normalize the click with the plot coordinates
+                        var x = this.xAxis[0].toValue(e.chartX);
+                        // Round x to 2 decimal places
+                        var roundedX = parseFloat(x.toFixed(2));
+                        
+                        // Handle the click event by calling a function
+                        handleLandscapeClick(roundedX);
+
+            },
+            load: function () {
+                    var chart = this; // Capture the chart instance
+                    // Setup mousemove event on the chart container
+                    chart.container.addEventListener('mousemove', function (e) {
+                        var eChart = chart.pointer.normalize(e); // Normalize the mouse coordinates to chart
+                        var x = chart.xAxis[0].toValue(eChart.chartX); // Convert pixel x-coordinate to chart x-value
+                        
+                        // Update or add the vertical line on mouse move
+                        chart.xAxis[0].removePlotLine('mouse-line'); // Remove the previous line
+                        chart.xAxis[0].addPlotLine({
+                            value: x,
+                            color: 'grey',
+                            width: 2,
+                            dashStyle: 'Dash',
+                            id: 'mouse-line' // Identifier for the plot line
+                        });
+                    });
+                }
+            }
+                        },
+
+            title: {
+                text: 'Landscape'
+            },
+            yAxis: {
+                title: {
+                    text: 'Payoff'
+                },
+                min: js_vars.ymin,
+                max: js_vars.ymax
+            },
+
+            xAxis: {
+                title: {
+                    text: 'Position'
+                },
+                min: js_vars.x_scale_left, //js_vars.xmin,
+                max: js_vars.x_scale_right //js_vars.xmax
+            },
+            tooltip: {
+                useHTML: true, // Allow HTML formatting
+                backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent background
+                style: {
+                    opacity: 0.6, // Set tooltip opacity
+                    color: '#000', // Text color
+                    padding: '10px' // Padding around the text
+                },
+                formatter: function() {
+                    return `
+                        <strong>${this.series.name}</strong><br>
+                        Position: ${this.x}<br>
+                        Payoff: ${this.y}
+                    `;
+                }
+            },
+            
+            plotOptions: {
+                series: {
+                    
+                    animation: false,
+                    states: {
+                    inactive: {
+                        opacity: 1 // Keep the opacity at 1 to avoid dimming
+                    }
+                }
+                },
+
+            },
+
+            // series: [{
+            //     type: 'line',
+            //     name: 'Landscape',
+            //     data: highcharts_landscape_series[1],
+            //     marker: {
+            //         enabled: false
+            //     },
+            //     states: {
+            //         hover: {
+            //             lineWidth: 0
+            //         }
+            //     },
+            //     enableMouseTracking: true
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Current Strategy',
+            //     data: currentValue,
+            //     color: '#800080',
+            //     marker: {
+            //         symbol: 'triangle',
+            //         radius: 6
+            //     }
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Other Positions',
+            //     data: other_positions,
+            //     color: '#6B8E23',
+            //     opacity: 0.8,
+            //     marker: {
+            //         lineWidth: 2,
+            //         fillColor: '#FFFFFF',
+            //         lineColor: null,
+            //         symbol: 'circle',
+            //         radius: 6
+            //     },
+
+            // }, {
+            //     type: 'scatter',
+            //     name: 'Your Position',
+            //     data: [highcharts_landscape_series[0][js_vars.my_id-1]],
+            //     color: '#ff0000',
+            //     opacity: 0.8,
+            //     marker: {
+            //         lineWidth: 2,
+            //         fillColor: '#FFFFFF',
+            //         lineColor: null,
+            //         symbol: 'circle',
+            //         radius: 6
+            //     }
+            // }],
+            series: series,
+
+            credits: {
+                enabled: false
+            }
+
+        });
+    }
+</script>

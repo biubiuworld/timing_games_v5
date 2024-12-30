@@ -1,10 +1,16 @@
 from os import environ
 
 SESSION_CONFIGS = [
-    dict(
-        name='timing_game',
-        display_name="Timing Games",
-        app_sequence=['timing_game'],
+    # dict(
+    #     name='timing_game',
+    #     display_name="Timing Games",
+    #     app_sequence=['timing_game'],
+    #     num_demo_participants=4,
+    # ),
+        dict(
+        name='timing_game_update',
+        display_name="Timing Games update",
+        app_sequence=['timing_game_update'],
         num_demo_participants=4,
     ),
     #     dict(

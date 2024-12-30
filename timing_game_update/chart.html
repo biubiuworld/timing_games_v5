@@ -1,0 +1,90 @@
+<!-- <script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script> -->
+
+<!-- height is needed to avoid scroll to top: https://www.highcharts.com/forum/viewtopic.php?t=12731 -->
+<div id="highchart" style="float:left;width: 30%">
+
+</div>
+
+<script>
+    function redrawStrategiesChart(highcharts_series) {
+        const other_strategies = highcharts_series.slice();
+        other_strategies.splice(js_vars.my_id-1,1);
+        let strategy_series = [];
+        for (let i=0; i<other_strategies.length; i++){
+            dict = {type: 'line',
+                    name: 'Other Strategy History',
+                    data: other_strategies[i],
+                    opacity: 0.5,
+                    showInLegend: false,
+                    marker: {
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF',
+                        lineColor: null,
+                        symbol: 'circle',
+                        radius: 1
+                },
+                    }
+            // console.log(other_strategies[i]);
+            strategy_series.push(dict);
+        }
+        let dict_my = {type: 'line',
+                    name: 'Your Position History',
+                    data: highcharts_series[js_vars.my_id-1],
+                    opacity: 0.9,
+                    color: '#228B22',
+                    marker: {
+                        lineWidth: 4,
+                        fillColor: '#228B22',
+                        lineColor: null,
+                        symbol: 'diamond',
+                        radius: 1
+                },
+                    };  
+        strategy_series.push(dict_my);      
+        Highcharts.chart('highchart', {
+            chart: {
+                 height: 300,
+                        },
+
+            title: {
+                text: 'Position History'
+            },
+            yAxis: {
+                title: {
+                    text: 'Position'
+                },
+                min: js_vars.xmin,
+                max: js_vars.xmax
+            },
+
+            xAxis: {
+                title: {
+                    text: 'Time (seconds)'
+                },
+                min: 0
+            },
+
+            plotOptions: {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                    step: 'left',
+                    animation: false
+                },
+                line: {
+                    marker: {
+                        enabled: true
+                    }
+                }
+            },
+            series: strategy_series,
+
+            credits: {
+                enabled: false
+            }
+
+        });
+    }
+</script>
