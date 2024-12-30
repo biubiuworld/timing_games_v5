@@ -42,6 +42,8 @@ class C(BaseConstants):
     INITIALIZATION = read_csv('INITIALIZATION')
     GAME_TYPE = read_csv('GAME_TYPE')
     LOWER_BOUND = read_csv('LOWER_BOUND')
+    X_SCALE_LEFT = read_csv('X_SCALE_LEFT')
+    X_SCALE_RIGHT = read_csv('X_SCALE_RIGHT')
     EXCHANGE_RATE = 180
     SHOWUP = 6
     THRESHOLD =1000
@@ -355,6 +357,8 @@ class MyPage(Page):
             ymax=float(C.YMAX[player.round_number-1]), 
             ymin=float(C.YMIN[player.round_number-1]), 
             subperiod=float(C.SUBPERIOD[player.round_number-1]),
+            x_scale_left=float(C.X_SCALE_LEFT[player.round_number-1]), 
+            x_scale_right=float(C.X_SCALE_RIGHT[player.round_number-1]),
             highcharts_series=session.highcharts_series, #strategy over time
             highcharts_landscape_series=session.highcharts_landscape_series, #multiplied bubble and landscape
             highcharts_payoff_series=session.highcharts_payoff_series, #multiplied payoff over time plot
