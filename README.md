@@ -1,6 +1,9 @@
 # TimingGames(oTree 5 Version)
 Design for a timing game with oTree version 5.10.3.
 
+# Display
+![me](timing_experiment.gif)
+
 # 1 Steps to initiate the game in local
 
 ## 1.1 clone git repository
