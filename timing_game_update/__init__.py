@@ -44,12 +44,12 @@ class C(BaseConstants):
     LOWER_BOUND = read_csv('LOWER_BOUND')
     X_SCALE_LEFT = read_csv('X_SCALE_LEFT')
     X_SCALE_RIGHT = read_csv('X_SCALE_RIGHT')
-    EXCHANGE_RATE = 180
+    EXCHANGE_RATE = 60
     SHOWUP = 6
-    THRESHOLD =1000
+    THRESHOLD =900
     PRACTICE_ROUND_NUM = 2
-    SELECT_LOW_BOUND = 12
-    SELECT_HIGH_BOUND = 20
+    SELECT_LOW_BOUND = 11
+    SELECT_HIGH_BOUND = 16
 
 class Subsession(BaseSubsession):
     pass
@@ -349,6 +349,11 @@ class WaitToStart(WaitPage):
                 # if_freeze_next=0,
                 # if_freeze_now=0,
             )
+        session.history = []
+        session.history.append(multiplier_strategies_payoffs)
+
+
+
 
 
 # PAGES
@@ -487,7 +492,7 @@ class MyPage(Page):
                     # if_freeze_next=session.if_freeze_next[p.id_in_group-1],
                     # if_freeze_now=session.if_freeze_now[p.id_in_group-1],
                 )
-            
+                session.history.append(multiplier_strategies_payoffs)
                 session.highcharts_landscape_series = []
                 # bubble_coordinate_series = dict(data=bubble_coordinate, type='scatter', name='Player {}'.format(p.id_in_group))
                 session.highcharts_landscape_series.append(multiplier_bubble_coordinate)
@@ -532,7 +537,9 @@ class ResultsWaitPage(WaitPage):
         for p in group.get_players():
             # player_strategy_history = np.array([adj.strategy for adj in Adjustment.filter(player=p) if adj.strategy_payoff is not None])
             # p.player_average_strategy =player_strategy_history.mean()
-            player_payoff_history = np.array([list(map(float, adj.multiplier_strategy_payoff.split(',')))[p.id_in_group-1] for adj in Adjustment.filter()])
+            # player_payoff_history = np.array([list(map(float, adj.multiplier_strategy_payoff.split(',')))[p.id_in_group-1] for sess in Adjustment.filter()])
+            player_payoff_history = np.array([sess[p.id_in_group-1] for sess in group.session.history])
+
             p.player_average_payoff = round(player_payoff_history.mean(),3) #payoff in current round
             player_cum_payoff = []
             if group.round_number < C.PRACTICE_ROUND_NUM+1:

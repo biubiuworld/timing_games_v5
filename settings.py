@@ -51,7 +51,7 @@ ROOMS = [
 ]
 
 PARTICIPANT_FIELDS = ['avg_group_payoff_history', 'highcharts_landscape_series', 'highcharts_series', 'highcharts_payoff_series','remaining_freeze_period_for_all', 'if_freeze_next', 'if_freeze_now', 'if_freeze_next_all']
-SESSION_FIELDS = ['current_strategies_copy', 'avg_payoff_history', 'highcharts_landscape_series', 'highcharts_series', 'highcharts_payoff_series', 'remaining_freeze_period_for_all', 'if_freeze_next', 'if_freeze_now', 'start_timestamp']
+SESSION_FIELDS = ['current_strategies_copy', 'avg_payoff_history', 'highcharts_landscape_series', 'highcharts_series', 'highcharts_payoff_series', 'remaining_freeze_period_for_all', 'if_freeze_next', 'if_freeze_now', 'start_timestamp', 'history']
 
 # ISO-639 code
 # for example: de, fr, ja, ko, zh-hans
