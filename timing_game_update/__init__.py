@@ -332,17 +332,17 @@ class WaitToStart(WaitPage):
             session.highcharts_payoff_series.append(payoff_history) #multiplied payoff over time plot
             players.append(p.id_in_group)
         moves = [0]* group.num_players
-        string_players = ', '.join(map(str, players))
+        # string_players = ', '.join(map(str, players))
         string_strategies = ','.join(map(str, strategies))
         string_strategies_payoffs = ','.join(map(str, strategies_payoffs))
-        string_multiplier_strategy_payoffs = ','.join(map(str, multiplier_strategies_payoffs))
+        # string_multiplier_strategy_payoffs = ','.join(map(str, multiplier_strategies_payoffs))
         string_moves= ','.join(map(str, moves))
         Adjustment.create(
                 player = group.get_players()[0],
-                players=string_players,
+                # players=string_players,
                 strategy=string_strategies,
                 strategy_payoff=string_strategies_payoffs,
-                multiplier_strategy_payoff=string_multiplier_strategy_payoffs,
+                # multiplier_strategy_payoff=string_multiplier_strategy_payoffs,
                 seconds=0,
                 move=string_moves,
                 # remaining_freeze=0,
@@ -474,18 +474,18 @@ class MyPage(Page):
                 players = []
                 for p in group.get_players():
                     players.append(p.id_in_group)
-                string_players = ', '.join(map(str, players))
+                # string_players = ', '.join(map(str, players))
                 string_strategies = ','.join(map(str, current_strategies))
                 string_strategies_payoffs = ','.join(map(str, strategies_payoffs))
-                string_multiplier_strategy_payoffs = ','.join(map(str, multiplier_strategies_payoffs))
+                # string_multiplier_strategy_payoffs = ','.join(map(str, multiplier_strategies_payoffs))
                 string_moves= ','.join(map(str, move_for_all))
                 Adjustment.create(
                     player = group.get_players()[0],
-                    players=string_players,
+                    # players=string_players,
                     # strategy=[adj.strategy for adj in Adjustment.filter(player=p, group=group, seconds=now_seconds)][-1],
                     strategy=string_strategies,
                     strategy_payoff=string_strategies_payoffs,
-                    multiplier_strategy_payoff=string_multiplier_strategy_payoffs,
+                    # multiplier_strategy_payoff=string_multiplier_strategy_payoffs,
                     seconds=now_seconds,
                     move=string_moves,
                     # remaining_freeze=session.remaining_freeze_period_for_all[p.id_in_group-1],
@@ -619,7 +619,7 @@ def custom_export(players):
 
     # yield ['session','subperiod', 'period_length', 'xmax','xmin','ymax','ymin','lambda','gamma','rho','freeze_period', 'multiplier','initialization_code','game_type', 'participant','participant_label', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move', 'remaining_freeze_period', 'if_freeze_next', 'if_freeze_now']
     # yield ['session','subperiod', 'period_length', 'xmax','xmin', 'lambda','gamma','rho', 'multiplier','game_type', 'participant','participant_label', 'round_number', 'id_in_group', 'seconds', 'strategy', 'payoff','multiplied_payoff', 'move']
-    yield ['session','round_number', 'seconds','players', 'strategy', 'payoff','multiplied_payoff', 'move']
+    yield ['session','round_number', 'seconds', 'strategy', 'payoff', 'move']
 
     # 'filter' without any args returns everything
     adjustments = Adjustment.filter()
@@ -635,4 +635,4 @@ def custom_export(players):
         #        float(C.XMAX[player.round_number-1]), float(C.XMIN[player.round_number-1]), 
         #        float(C.LAMBDA[player.round_number-1]), float(C.GAMMA[player.round_number-1]), float(C.RHO[player.round_number-1]), float(C.MULTIPLIER[player.round_number-1]), str(C.GAME_TYPE[player.round_number-1]),
         #        participant.code, participant.label, player.round_number, player.id_in_group, adj.seconds, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move]
-        yield [session.code, player.round_number, adj.seconds,adj.players, adj.strategy, adj.strategy_payoff, adj.multiplier_strategy_payoff, adj.move]  
+        yield [session.code, player.round_number, adj.seconds, adj.strategy, adj.strategy_payoff, adj.move]  
