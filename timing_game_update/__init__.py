@@ -275,19 +275,15 @@ class WaitToStart(WaitPage):
         xmax = float(C.XMAX[group.round_number-1])
         xmin = float(C.XMIN[group.round_number-1])
         
-        initial_id_strategies = [] #collect initial id and strategies
         # assign initial strategies
         group.num_players = len(group.get_players()) # num of players in group
         strategies = generate_initial_strategies(group, group.num_players)
         for p in group.get_players():
             p.player_strategy = strategies[p.id_in_group-1]
-            initial_id_strategies.append([p.id_in_group, p.player_strategy])
-        initial_id_strategies.sort(key=lambda x: x[0]) #make sure the the order starts from player 1
-        initial_strategies = [i[1] for i in initial_id_strategies] #a list of strategies
 
-        session.current_strategies_copy = initial_strategies #store initial strategies to use in the live page
-        generate_bubble_coordinate_result = generate_bubble_coordinate(group, initial_strategies)
-        generate_landscape_coordinate_result = generate_landscape_coordinate(group, initial_strategies)
+        session.current_strategies_copy = strategies #store initial strategies to use in the live page
+        generate_bubble_coordinate_result = generate_bubble_coordinate(group, strategies)
+        generate_landscape_coordinate_result = generate_landscape_coordinate(group, strategies)
         bubble_coordinate = generate_bubble_coordinate_result[0].tolist() 
         # print(bubble_coordinate)
         landscape_coordinate = generate_landscape_coordinate_result[0].tolist()
