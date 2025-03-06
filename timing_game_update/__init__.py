@@ -56,11 +56,9 @@ class Subsession(BaseSubsession):
 
 
 class Group(BaseGroup):
-    # start_timestamp = models.FloatField()
     num_messages = models.IntegerField()
     messages_roundzero = models.IntegerField()
     num_players = models.IntegerField(initial=0)
-    # group_average_strategies = models.FloatField()
     group_average_payoffs = models.FloatField()
     group_cum_average_payoffs = models.FloatField()
     
@@ -68,14 +66,11 @@ class Group(BaseGroup):
 
 class Player(BasePlayer):
     player_strategy = models.FloatField(initial=0.0)
-    # player_average_strategy = models.FloatField()
     player_average_payoff = models.FloatField()
     player_cum_average_payoff = models.FloatField()
-    # payment_selected_round = models.IntegerField()
     payment_payoff = models.FloatField()
     payment_in_dollar = models.FloatField()
     total_payment = models.FloatField()
-    # bug = models.IntegerField()
 
 
 class Adjustment(ExtraModel):
@@ -85,11 +80,9 @@ class Adjustment(ExtraModel):
     strategy = models.StringField()
     strategy_payoff = models.StringField()
     multiplier_strategy_payoff = models.StringField()
-    seconds = models.FloatField(doc="Timestamp (seconds since beginning of trading)")
+    seconds = models.FloatField(doc="Timestamp (seconds since beginning)")
     move = models.StringField()
-    # remaining_freeze = models.IntegerField()
-    # if_freeze_next = models.BooleanField()
-    # if_freeze_now = models.BooleanField()
+
 
 
 #Functions
@@ -271,10 +264,8 @@ class Introduction(Page):
 class WaitToStart(WaitPage):
     @staticmethod
     def after_all_players_arrive(group: Group):
-        # group.start_timestamp = int(time.time())
-        session = group.session #use session to store global group data
-        # print(group.id_in_subsession)
 
+        session = group.session #use session to store global group data
         session.avg_payoff_history = []
         session.start_timestamp = str(round(time.time(), 1)) 
         # group.start_timestamp = round(int(time.time()*2)/2, 1)
@@ -286,10 +277,7 @@ class WaitToStart(WaitPage):
         
         initial_id_strategies = [] #collect initial id and strategies
         # assign initial strategies
-        for p in group.get_players():
-            # p.player_strategy = round(random.random() * (xmax - xmin) + xmin, C.DECIMALS)
-            group.num_players += 1
-            # initial_id_strategies.append([p.id_in_group, p.player_strategy])
+        group.num_players = len(group.get_players()) # num of players in group
         strategies = generate_initial_strategies(group, group.num_players)
         for p in group.get_players():
             p.player_strategy = strategies[p.id_in_group-1]
