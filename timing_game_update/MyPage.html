@@ -141,13 +141,19 @@ Round {{ round_number }}
   function liveRecv(data) {
     //console.log(data)
     if ('highcharts_series' in data) {
+      highcharts_series.forEach((subArray, index) => {
+      subArray.push(data.highcharts_series[index]);  // Append the corresponding element from newData
+      });
+      highcharts_payoff_series.forEach((subArray, index) => {
+      subArray.push(data.highcharts_payoff_series[index]);  // Append the corresponding element from newData
+      });
       highcharts_landscape_series = data.highcharts_landscape_series;
-      highcharts_series = data.highcharts_series;
-      highcharts_payoff_series = data.highcharts_payoff_series;
-      avg_payoff_history = data.avg_payoff_history;
+      // highcharts_series = data.highcharts_series;
+      // highcharts_payoff_series = data.highcharts_payoff_series;
+      avg_payoff_history.push(data.avg_payoff_history);
       redrawLandscapeChart(data.highcharts_landscape_series);
-      redrawStrategiesChart(data.highcharts_series);
-      redrawPayoffChart(data.highcharts_payoff_series, data.avg_payoff_history);
+      redrawStrategiesChart(highcharts_series);
+      redrawPayoffChart(highcharts_payoff_series, avg_payoff_history);
       progress.value=js_vars.subperiod;
       if(data.if_freeze_for_all[js_vars.my_id-1]==1){
         num = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
