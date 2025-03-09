@@ -155,12 +155,12 @@ Round {{ round_number }}
       redrawStrategiesChart(highcharts_series);
       redrawPayoffChart(highcharts_payoff_series, avg_payoff_history);
       progress.value=js_vars.subperiod;
-      if(data.if_freeze_for_all[js_vars.my_id-1]==1){
-        num = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
-        freeze = true;
-      }else if(data.if_freeze_for_all[js_vars.my_id-1]==0){
-        freeze = false;
-      }
+      // if(data.if_freeze_for_all[js_vars.my_id-1]==1){
+      //   num = data.highcharts_landscape_series[0][js_vars.my_id-1][0];
+      //   freeze = true;
+      // }else if(data.if_freeze_for_all[js_vars.my_id-1]==0){
+      //   freeze = false;
+      // }
   } 
     }
 

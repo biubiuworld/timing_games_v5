@@ -482,7 +482,7 @@ class MyPage(Page):
               
                 multiplier_array_strategies_payoffs = np.array(multiplier_strategies_payoffs) 
                 multiplier_avg_strategies_payoffs = round(multiplier_array_strategies_payoffs.mean(),3) #group avg payoff in current subperiod(multiplied)
-                session.avg_payoff_history.append([now_seconds,multiplier_avg_strategies_payoffs])#group avg over time (multiplied)
+                # session.avg_payoff_history.append([now_seconds,multiplier_avg_strategies_payoffs])#group avg over time (multiplied)
                 avg_payoff_history = [now_seconds,multiplier_avg_strategies_payoffs]
                 # players = []
                 # for p in group.get_players():
@@ -515,22 +515,22 @@ class MyPage(Page):
                 session.highcharts_landscape_series.append(multiplier_bubble_coordinate)
                 session.highcharts_landscape_series.append(multiplier_landscape_coordinate)
                 # session.if_freeze_now = if_freeze_next_copy
-                session.if_freeze_next = [0]*num_players
+                # session.if_freeze_next = [0]*num_players
                 highcharts_series = []
                 highcharts_payoff_series = []
                 for p in group.get_players():
                     highcharts_series.append([now_seconds,p.player_strategy])
-                    session.highcharts_series[p.id_in_group-1].append([now_seconds,p.player_strategy])
+                    # session.highcharts_series[p.id_in_group-1].append([now_seconds,p.player_strategy])
                     highcharts_payoff_series.append([now_seconds, multiplier_strategies_payoffs[p.id_in_group-1]])
-                    session.highcharts_payoff_series[p.id_in_group-1].append([now_seconds, multiplier_strategies_payoffs[p.id_in_group-1]])
+                    # session.highcharts_payoff_series[p.id_in_group-1].append([now_seconds, multiplier_strategies_payoffs[p.id_in_group-1]])
 
                 # return {0: dict(highcharts_series=session.highcharts_series, highcharts_landscape_series=session.highcharts_landscape_series, highcharts_payoff_series=session.highcharts_payoff_series, avg_payoff_history=session.avg_payoff_history, if_freeze_for_all=session.if_freeze_next)}
-                return {0: dict(highcharts_series=highcharts_series, highcharts_landscape_series=session.highcharts_landscape_series, highcharts_payoff_series=highcharts_payoff_series, avg_payoff_history=avg_payoff_history, if_freeze_for_all=session.if_freeze_next)}
+                return {0: dict(highcharts_series=highcharts_series, highcharts_landscape_series=session.highcharts_landscape_series, highcharts_payoff_series=highcharts_payoff_series, avg_payoff_history=avg_payoff_history)}
 
 
-        elif 'slider' in data:
-            single_coordinate = [x for x in session.highcharts_landscape_series[1] if x[0] == float(data['slider'])]
-            return{player.id_in_group: dict(single_coordinate=single_coordinate, highcharts_landscape_series=session.highcharts_landscape_series, if_freeze_for_all=session.if_freeze_next)}
+        # elif 'slider' in data:
+        #     single_coordinate = [x for x in session.highcharts_landscape_series[1] if x[0] == float(data['slider'])]
+        #     return{player.id_in_group: dict(single_coordinate=single_coordinate, highcharts_landscape_series=session.highcharts_landscape_series, if_freeze_for_all=session.if_freeze_next)}
 
 
 
