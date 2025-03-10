@@ -71,6 +71,11 @@ class Player(BasePlayer):
     payment_payoff = models.FloatField()
     payment_in_dollar = models.FloatField()
     total_payment = models.FloatField()
+    survey_q1 = models.LongStringField(label='''
+        1. Did you find any part of the screen confusing? If so, what was the most confusing?''')
+    survey_q2 = models.LongStringField(label='''
+        2. Please comment on how you made your choices in the experiment. 
+        For example, what would make you want to change or adjust your stategy?''')
 
 
 class Adjustment(ExtraModel):
@@ -596,9 +601,18 @@ class Results(Page):
             group_cum_average_payoffs=round(group.group_cum_average_payoffs, 2),
             )
     
+class Questionaire(Page):
+    form_model = 'player'
+    form_fields = ['survey_q1', 'survey_q2']
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == C.NUM_ROUNDS
+
+    
 
     
 class Payment(Page):
+
     @staticmethod
     def is_displayed(player):
         return player.round_number == C.NUM_ROUNDS
@@ -617,7 +631,7 @@ class Payment(Page):
             )
 
 
-page_sequence = [Introduction, WaitToStart, MyPage, ResultsWaitPage, Results, Payment]
+page_sequence = [Introduction, WaitToStart, MyPage, ResultsWaitPage, Results,Questionaire, Payment]
 
 
 def custom_export(players):
